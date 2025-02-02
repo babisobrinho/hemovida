@@ -1,5 +1,9 @@
 # HemoVida - Centro de Doações de Sangue
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/babisobrinho/hemovida/refs/heads/main/assets/images/logo_square.png">
+</p>
+
 Este projeto é um sistema de gestão de doações de sangue desenvolvido com as tecnologias PHP e Bootstrap, mas com ênfase em SQL.
 
 O SQL foi a tecnologia central deste projeto, sendo utilizado para estruturar e organizar a base de dados, garantindo a integridade e a acessibilidade das informações. Através de consultas SQL, foi possível criar páginas dinâmicas, realizar atualizações em tempo real e fazer a gestão das interações entre as diversas funcionalidades da plataforma. O SQL foi fundamental para a construção das tabelas, a definição de relacionamentos e a execução de operações de consulta e manipulação de dados.
