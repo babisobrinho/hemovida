@@ -1,10 +1,10 @@
 <?php
     include 'partials/header.php';
 
-    $pageTitle = "Transfusões de Sangues";
+    $pageTitle = "Bolsas de Sangues";
     $breadcrumbItems = [
         ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
-        ['title' => 'Transfusões', 'url' => '#', 'active' => true]
+        ['title' => 'Inventário', 'url' => '#', 'active' => true]
     ];
 ?>
 
