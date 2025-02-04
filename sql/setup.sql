@@ -76,14 +76,14 @@ CREATE TABLE `dadores` (
 --
 
 INSERT INTO `dadores` (`id`, `nome`, `email`, `n_utente`, `data_nascimento`, `tipo_sanguineo`, `peso`, `sexo`, `estado`, `data_inscricao`) VALUES
-(1, 'João Oliveira', 'joao.oliveira98@email.com', 123456789, '1998-04-15', 'O+', 72.5, 'Masculino', 0, '0000-00-00'),
-(8, 'Rafael Moreira', 'rafael.moreira92@email.com', 123456779, '1992-07-21', 'O+', 74.5, 'Masculino', 0, '0000-00-00'),
-(9, 'Beatriz Almeida', 'beatriz.almeida88@email.com', 987654321, '1988-11-03', 'A-', 62.3, 'Feminino', 0, '0000-00-00'),
-(10, 'Lucas Ferreira', 'lucas.ferreira95@email.com', 456123789, '1995-03-12', 'B+', 80.7, 'Masculino', 0, '0000-00-00'),
-(11, 'Sofia Costa', 'sofia.costa99@email.com', 741852963, '1999-09-28', 'AB-', 55.8, 'Feminino', 0, '0000-00-00'),
+(1, 'João Oliveira', 'joao.oliveira98@email.com', 123456789, '1998-04-15', 'O+', 72.5, 'Masculino', 1, '0000-00-00'),
+(8, 'Rafael Moreira', 'rafael.moreira92@email.com', 123456779, '1992-07-21', 'O+', 74.5, 'Masculino', 1, '0000-00-00'),
+(9, 'Beatriz Almeida', 'beatriz.almeida88@email.com', 987654321, '1988-11-03', 'A-', 62.3, 'Feminino', 1, '0000-00-00'),
+(10, 'Lucas Ferreira', 'lucas.ferreira95@email.com', 456123789, '1995-03-12', 'B+', 80.7, 'Masculino', 1, '0000-00-00'),
+(11, 'Sofia Costa', 'sofia.costa99@email.com', 741852963, '1999-09-28', 'AB-', 55.8, 'Feminino', 1, '0000-00-00'),
 (12, 'Miguel Nunes', 'miguel.nunes85@email.com', 369258147, '1985-05-17', 'A+', 88.2, 'Masculino', 0, '0000-00-00'),
 (13, 'Luana Texeira', 'Luna.texeira@gmail.com', 312314567, '1999-08-05', 'A+', 65, 'Feminino', 0, '0000-00-00'),
-(14, 'Junior Cavalcante', 'Junior.valc@gmail.com', 345678234, '2000-04-06', 'O-', 76, 'Masculino', 0, '0000-00-00');
+(14, 'Junior Cavalcante', 'Junior.valc@gmail.com', 345678234, '2000-04-06', 'O-', 76, 'Masculino', 1, '0000-00-00');
 
 -- --------------------------------------------------------
 

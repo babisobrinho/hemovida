@@ -7,7 +7,7 @@
     }
 
     try {
-        $pdo = new PDO("mysql:host=localhost;dbname=hemovida;charset=utf8", "root", "");
+        $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET, DB_USER, DB_PASS);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $sql = "SELECT * FROM dadores WHERE id = :id";
