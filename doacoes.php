@@ -1,11 +1,14 @@
 <?php
     include 'partials/header.php';
-    include 'includes/agenda_escolher_data.php';
+    include 'includes/db_functions.php';
+    
+    $dataSelecionada = $_GET['dataSelecionada'] ?? date('Y-m-d');
+    $doacoes = getDoacoesByDate($pdo, $dataSelecionada);
 
     $pageTitle = "Agenda de Doações";
     $breadcrumbItems = [
         ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
-        ['title' => 'Agenda', 'url' => '#', 'active' => true]
+        ['title' => 'Doações', 'url' => '#', 'active' => true]
     ];
 ?>
 
@@ -14,7 +17,7 @@
 
     <div class="d-flex align-content-center justify-content-between">
         <div>
-            <a href="agenda-criar.php" class="btn text-white" style="background-color: #202d3b;">
+            <a href="doacao-criar.php" class="btn text-white" style="background-color: #202d3b;">
                 <i class="fa-solid fa-plus"></i> Nova Doação
             </a>
         </div>
@@ -32,7 +35,7 @@
                 
                 foreach($doacoes as $index => $doacao):
 
-                include 'includes/agenda_info.php'
+                    $detalhes = getDoacaoDetails($pdo, $doacao, $dataSelecionada);
 
             ?>
                 <div class="row">
@@ -64,9 +67,9 @@
                     <div class="col py-2">
                         <div class="card shadow">
                             <div class="card-header d-flex justify-content-between">
-                                <h4 class="card-title <?php echo $isPastDoacao ? 'text-muted' : 'text-dark '; ?> m-0"><span><?php echo date('H:i', strtotime($doacao['hora'])); ?></span> - <?php echo $doacao['nome']; ?></h4>
+                                <h4 class="card-title <?php echo $detalhes['isPastDoacao'] ? 'text-muted' : 'text-dark '; ?> m-0"><span><?php echo date('H:i', strtotime($doacao['hora'])); ?></span> - <?php echo $doacao['nome']; ?></h4>
                                 <div class="d-flex align-items-center justify-content-end gap-2">
-                                    <a href="agenda-editar.php?id=<?php echo $doacao['id']; ?>" class="lh-1 text-decoration-none" style="color: #202d3b;">
+                                    <a href="doacao-editar.php?table=doacoes&id=<?php echo $doacao['id']; ?>" class="lh-1 text-decoration-none" style="color: #202d3b;">
                                         <i class="fa-solid fa-file-pen"></i>
                                     </a>
                                     <a href="#" class="lh-1" data-bs-toggle="modal" data-bs-target="#deleteModalDoacao" data-doacao-id="<?php echo $doacao['id']; ?>" class="text-dark">
@@ -99,16 +102,16 @@
                                         ?>
                                     </p>
                                 </div>
-                                <div class="row <?php echo $isPastDoacao ? 'text-muted' : 'text-dark '; ?>">
+                                <div class="row <?php echo $detalhes['isPastDoacao'] ? 'text-muted' : 'text-dark '; ?>">
                                     <div class="col-3">
                                         <p class="m-0"><b>Número de Utente:</b> <?php echo $doacao['n_utente']; ?></p>
                                         <p class="m-0"><b>Tipo Sanguíneo:</b> <?php echo $doacao['tipo_sanguineo']; ?></p>
                                         <p class="m-0">
-                                            <b>Última Doação:</b> <?php echo $data_ultima_doacao = $ultima_doacao ? $ultima_doacao : "Nenhuma doação anterior"; ?>
+                                            <b>Última Doação:</b> <?php echo $detalhes['ultima_doacao'] = $detalhes['ultima_doacao'] ? $detalhes['ultima_doacao'] : "Nenhuma doação anterior"; ?>
                                         </p>
                                     </div>
                                     <div class="col-3">
-                                        <p class="m-0"><b>Idade:</b> <?php echo $idade; ?> anos</p>
+                                        <p class="m-0"><b>Idade:</b> <?php echo $detalhes['idade']; ?> anos</p>
                                         <p class="m-0"><b>Sexo:</b> <?php echo $doacao['sexo']; ?></p>
                                         <p class="m-0"><b>Peso:</b> <?php echo $doacao['peso']; ?>kg</p>
                                     </div>
@@ -124,7 +127,7 @@
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p>Nenhuma doação agendada para <?php echo date('d/m/Y', strtotime($dataSelecionada)); ?>.</p>
+            <p>Nenhuma doação agendada para <?php echo $dataSelecionada; ?>.</p>
         <?php endif; ?>
     </div>
 </div>
@@ -138,7 +141,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Tem a certeza de que deseja remover esta marcação?
+                Tem a certeza de que deseja remover esta doação?
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
@@ -154,7 +157,7 @@
             const doacaoId = this.getAttribute('data-doacao-id');
             
             const deleteConfirmButton = document.getElementById('deleteConfirmButtonDoacao');
-            deleteConfirmButton.setAttribute('href', 'includes/doacao_remover.php?id=' + doacaoId);
+            deleteConfirmButton.setAttribute('href', 'includes/destroy.php?table=doacoes&id=' + doacaoId);
         });
     });
 </script>

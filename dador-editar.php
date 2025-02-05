@@ -1,7 +1,9 @@
 <?php
 
     include 'partials/header.php';
-    include 'includes/dador_id.php';
+    include 'includes/obter_registo.php';
+
+    $dador = $record;
 
     $pageTitle = "Editar Dador";
     $breadcrumbItems = [
@@ -18,7 +20,7 @@
     <div class="row d-flex align-items-center justify-content-center py-4">
         <div class="col-xl-6 col-md-10 col-12">
             <div class="card">
-                <form action="includes/dador_editar.php" method="POST">
+                <form action="includes/update.php" method="POST">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 mb-3">
@@ -74,6 +76,7 @@
                                 </select>
                             </div>
                             <input type="hidden" name="id" value="<?php echo $dador['id']; ?>">
+                            <input type="hidden" name="table" value="dadores">
                         </div>
                     </div>
                     <div class="card-footer d-flex align-items-center justify-content-end gap-2 border-0 bg-white">

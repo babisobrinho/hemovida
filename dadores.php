@@ -1,12 +1,13 @@
 <?php
     include 'partials/header.php';
-    include 'includes/dadores_info.php';
+    include 'includes/filtrar_dadores.php';
 
     $pageTitle = "Lista de Dadores";
     $breadcrumbItems = [
         ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
         ['title' => 'Dadores', 'url' => '#', 'active' => true]
     ];
+
 ?>
 
     <div class="container p-4">
@@ -16,7 +17,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button text-dark" style="background-color: #f1f1f1;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltro" aria-expanded="true" aria-controls="collapseFiltro">
-                        Filtro
+                        Aplicar Filtros
                     </button>
                 </h2>
                 <div id="collapseFiltro" class="accordion-collapse collapse show" data-bs-parent="#accordionFiltro">
@@ -33,61 +34,58 @@
                                                     <label class="form-check-label form-checked-danger" for="a-positivo">
                                                         A +
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countAPositivo ?></span>
+                                                    <span class="badge bg-light text-muted float-end"><?php echo $contagens['countAPositivo']; ?></span>
                                                 </div>
                                             </div>
-                                            <div class="collapse" id="filtro-mais">
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="a-negativo" id="a-negativo" <?php echo (isset($_GET['a-negativo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="a-negativo">
-                                                        A -
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countANegativo ?></span>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="b-positivo" id="b-positivo" <?php echo (isset($_GET['b-positivo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="b-positivo">
-                                                        B +
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countBPositivo ?></span>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="b-negativo" id="b-negativo" <?php echo (isset($_GET['b-negativo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="b-negativo">
-                                                        B -
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countBNegativo ?></span>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="ab-positivo" id="ab-positivo" <?php echo (isset($_GET['ab-positivo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="ab-positivo">
-                                                        AB +
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countABPositivo ?></span>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="ab-negativo" id="ab-negativo" <?php echo (isset($_GET['ab-negativo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="ab-negativo">
-                                                        AB -
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countABNegativo ?></span>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="o-positivo" id="o-positivo" <?php echo (isset($_GET['o-positivo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="o-positivo">
-                                                        O +
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countOPositivo ?></span>
-                                                </div>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" value="" name="o-negativo" id="o-negativo" <?php echo (isset($_GET['o-negativo']) ? 'checked' : ''); ?>>
-                                                    <label class="form-check-label" for="o-negativo">
-                                                        O -
-                                                    </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countONegativo ?></span>
-                                                </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="a-negativo" id="a-negativo" <?php echo (isset($_GET['a-negativo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="a-negativo">
+                                                    A -
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countANegativo']; ?></span>
                                             </div>
-                                            <a class="text-danger" data-bs-toggle="collapse" href="#filtro-mais" role="button" aria-expanded="false" aria-controls="filtro-mais">VER MAIS</a>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="b-positivo" id="b-positivo" <?php echo (isset($_GET['b-positivo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="b-positivo">
+                                                    B +
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countBPositivo']; ?></span>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="b-negativo" id="b-negativo" <?php echo (isset($_GET['b-negativo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="b-negativo">
+                                                    B -
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countBNegativo']; ?></span>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="ab-positivo" id="ab-positivo" <?php echo (isset($_GET['ab-positivo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="ab-positivo">
+                                                    AB +
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countABPositivo']; ?></span>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="ab-negativo" id="ab-negativo" <?php echo (isset($_GET['ab-negativo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="ab-negativo">
+                                                    AB -
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countABNegativo']; ?></span>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="o-positivo" id="o-positivo" <?php echo (isset($_GET['o-positivo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="o-positivo">
+                                                    O +
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countOPositivo']; ?></span>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" value="" name="o-negativo" id="o-negativo" <?php echo (isset($_GET['o-negativo']) ? 'checked' : ''); ?>>
+                                                <label class="form-check-label" for="o-negativo">
+                                                    O -
+                                                </label>
+                                                <span class="badge bg-light text-muted float-end"><?php echo $contagens['countONegativo']; ?></span>
+                                            </div>
                                         </div>
                                         <div class="col-md-4 col-12">
                                             <p class="fw-semibold mb-0 text-muted">Sexo</p>
@@ -97,14 +95,14 @@
                                                     <label class="form-check-label" for="feminino">
                                                         Feminino
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countFeminino ?></span>
+                                                    <span class="badge bg-light text-muted float-end"><?php echo $contagens['countFeminino']; ?></span>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" value="" name="masculino" id="masculino" <?php echo (isset($_GET['masculino']) ? 'checked' : ''); ?>>
                                                     <label class="form-check-label" for="masculino">
                                                         Masculino
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countMasculino ?></span>
+                                                    <span class="badge bg-light text-muted float-end"><?php echo $contagens['countMasculino']; ?></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -116,14 +114,14 @@
                                                     <label class="form-check-label" for="ativo">
                                                         Ativo
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countAtivo ?></span>
+                                                    <span class="badge bg-light text-muted float-end"><?php echo $contagens['countAtivo']; ?></span>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input" type="checkbox" value="" name="inativo" id="inativo" <?php echo (isset($_GET['inativo']) ? 'checked' : ''); ?>>
                                                     <label class="form-check-label" for="inativo">
                                                         Inativo
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end"><?php echo $countInativo ?></span>
+                                                    <span class="badge bg-light text-muted float-end"><?php echo $contagens['countInativo']; ?></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -182,7 +180,7 @@
                             <td><?php echo $dador['data_inscricao']; ?></td>
                             <td >
                                 <div class="d-flex gap-2">
-                                    <a href="dador-editar.php?id=<?php echo $dador['id']; ?>" class="text-decoration-none" style="color: #202d3b;">
+                                    <a href="dador-editar.php?table=dadores&id=<?php echo $dador['id']; ?>" class="text-decoration-none" style="color: #202d3b;">
                                         <i class="fa-solid fa-file-pen"></i>
                                     </a>
                                     <a href="" data-bs-toggle="modal" data-bs-target="#deleteModalDador" data-dador-id="<?php echo $dador['id']; ?>" class="text-dark">
@@ -223,7 +221,7 @@
                 var button = event.relatedTarget; 
                 var dadorId = button.getAttribute("data-dador-id"); 
                 var confirmButton = document.getElementById("deleteConfirmButtonDador");
-                confirmButton.href = "includes/dador_remover.php?id=" + dadorId;
+                confirmButton.href = "includes/destroy.php?table=dadores&id=" + dadorId;
             });
         });
     </script>

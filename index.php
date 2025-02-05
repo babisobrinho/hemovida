@@ -1,6 +1,9 @@
 <?php
     include 'partials/header.php';
     include 'includes/index_info.php';
+    //include 'includes/db_functions.php';
+
+    //$dadoresAtivos = getActiveDadores($pdo)['dadoresAtivos'];
 ?>
 
     <div class="container p-4">
@@ -23,7 +26,7 @@
                                 </a>
                             </div>
                             <div class="col-xl-2 col-sm-4 col-6 rounded d-flex align-items-center justify-content-center">
-                                <a class="p-4 text-decoration-none" href="/agenda.php">
+                                <a class="p-4 text-decoration-none" href="/doacoes.php">
                                     <div class="text-center">
                                         <i class="fa-regular fa-calendar" style="color: #202d3b; font-size: 80px;"></i>
                                     </div>
@@ -36,7 +39,7 @@
                                 </a>
                             </div>
                             <div class="col-xl-2 col-sm-4 col-6 rounded d-flex align-items-center justify-content-center">
-                                <a class="p-4 text-decoration-none" href="/inventario.php">
+                                <a class="p-4 text-decoration-none" href="/bolsas_sangue.php">
                                     <div class="text-center">
                                         <i class="fa-solid fa-droplet" style="color: #202d3b; font-size: 80px;"></i>
                                     </div>

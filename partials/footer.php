@@ -7,7 +7,3 @@
     <?php include 'partials/scripts.php'; ?>
 </body>
 </html>
-
-<?php
-    $conn->close();
-?>

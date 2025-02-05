@@ -17,7 +17,7 @@
         <div class="row d-flex align-items-center justify-content-center py-4">
             <div class="col-xl-6 col-md-10 col-12">
                 <div class="card">
-                    <form action="includes/dador_criar.php" method="POST">
+                    <form action="includes/store.php" method="POST">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12 mb-3">
@@ -73,10 +73,11 @@
                                     </select>
                                 </div>
                                 <input type="hidden" type="date" name="data_inscricao" id="data_inscricao" value="<?php echo date('Y-m-d'); ?>">
+                                <input type="hidden" name="table" value="dadores">
                             </div>
                         </div>
                         <div class="card-footer d-flex align-items-center justify-content-end gap-2 border-0 bg-white">
-                            <a href="agenda.php" class="btn btn-light border">
+                            <a href="dadores.php" class="btn btn-light border">
                                 Cancelar
                             </a>
                             <button type="submit" class="btn btn-success">

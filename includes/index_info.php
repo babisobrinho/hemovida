@@ -1,5 +1,7 @@
 <?php 
 
+    require_once __DIR__ . '/db_connection.php';
+
     $query = "
         SELECT 
             (SELECT COUNT(*) FROM doacoes WHERE DATE(doacoes.data) = CURDATE()) AS doacoesHoje,
@@ -10,16 +12,20 @@
             (SELECT COUNT(*) FROM hospitais) AS totalHospitais
     ";
 
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $data = $result->fetch_assoc();
+    try {
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $doacoesHoje = $data['doacoesHoje'];
-    $dadoresAtivos = $data['dadoresAtivos'];
-    $totalSangueDisponivel = $data['totalSangueDisponivel_ml'] / 1000;
-    $examesHoje = $data['examesHoje'];
-    $transfusoesHoje = $data['transfusoesHoje'];
-    $totalHospitais = $data['totalHospitais'];
+        $doacoesHoje = $data['doacoesHoje'];
+        $dadoresAtivos = $data['dadoresAtivos'];
+        $totalSangueDisponivel = $data['totalSangueDisponivel_ml'] / 1000;
+        $examesHoje = $data['examesHoje'];
+        $transfusoesHoje = $data['transfusoesHoje'];
+        $totalHospitais = $data['totalHospitais'];
+
+    } catch (PDOException $e) {
+        die("Erro ao executar a consulta: " . $e->getMessage());
+    }
 
 ?>

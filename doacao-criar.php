@@ -1,12 +1,14 @@
 <?php
 
     include 'partials/header.php';
-    include 'includes/doacao_info.php';
+    include 'includes/db_functions.php';
+
+    $dadoresAtivos = getActiveDadores($pdo)['dadoresAtivos'];
 
     $pageTitle = "Nova Doação";
     $breadcrumbItems = [
         ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
-        ['title' => 'Agenda', 'url' => 'agenda.php', 'active' => false],
+        ['title' => 'Doações', 'url' => 'doacoes.php', 'active' => false],
         ['title' => 'Nova Doação', 'url' => '#', 'active' => true]
     ];
     
@@ -18,7 +20,7 @@
         <div class="row d-flex align-items-center justify-content-center py-4">
             <div class="col-lg-6 col-md-9 col-12">
                 <div class="card">
-                    <form action="includes/doacao_criar.php" method="POST">
+                    <form action="includes/store.php?table=doacoes" method="POST">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12 mb-3">
@@ -52,7 +54,7 @@
                             </div>
                         </div>
                         <div class="card-footer d-flex align-items-center justify-content-end gap-2 border-0 bg-white">
-                            <a href="agenda.php" class="btn btn-light border">
+                            <a href="doacoes.php" class="btn btn-light border">
                                 Cancelar
                             </a>
                             <button type="submit" class="btn btn-success">

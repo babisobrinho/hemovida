@@ -39,7 +39,7 @@
         <h3 class="fw-semibold mb-2">A Nossa Equipa</h3>
         <div class="row justify-content-center">
             <div class="col-xl-7">
-                <p class="text-muted fs-15 mb-5 fw-normal">A nossa equipa é formada por funcionárias altamente<br>qualificadas que trabalham duro para elevar os padrões da empresa.</p>
+                <p class="text-muted fs-15 mb-5 fw-normal">A nossa equipa é formada por desenvolvedoras altamente<br>qualificadas que trabalham duro para elevar os padrões da empresa.</p>
             </div>
         </div>
         <div class="row d-flex align-items-center justify-content-center">
@@ -77,7 +77,7 @@
                                 <img class="rounded-circle" style="width: 150px;" src="https://avatars.githubusercontent.com/u/197295278?v=4" alt="Juliana Alves">
                             </span>
                             <p class="fw-semibold fs-17 mt-3 mb-0 text-danger">Juliana Alves</p>
-                            <span class="text-muted fs-14 text-primary fw-semibold">Front-End</span>
+                            <span class="text-muted fs-14 text-primary fw-semibold">Mobile</span>
                         </a>
                     </div>
                 </div>

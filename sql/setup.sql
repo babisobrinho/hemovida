@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 04-Fev-2025 às 15:35
+-- Tempo de geração: 05-Fev-2025 às 16:21
 -- Versão do servidor: 10.4.28-MariaDB
 -- versão do PHP: 8.2.4
 
@@ -81,8 +81,8 @@ INSERT INTO `dadores` (`id`, `nome`, `email`, `n_utente`, `data_nascimento`, `ti
 (9, 'Beatriz Almeida', 'beatriz.almeida88@email.com', 987654321, '1988-11-03', 'A-', 62.3, 'Feminino', 1, '0000-00-00'),
 (10, 'Lucas Ferreira', 'lucas.ferreira95@email.com', 456123789, '1995-03-12', 'B+', 80.7, 'Masculino', 1, '0000-00-00'),
 (11, 'Sofia Costa', 'sofia.costa99@email.com', 741852963, '1999-09-28', 'AB-', 55.8, 'Feminino', 1, '0000-00-00'),
-(12, 'Miguel Nunes', 'miguel.nunes85@email.com', 369258147, '1985-05-17', 'A+', 88.2, 'Masculino', 0, '0000-00-00'),
-(13, 'Luana Texeira', 'Luna.texeira@gmail.com', 312314567, '1999-08-05', 'A+', 65, 'Feminino', 0, '0000-00-00'),
+(12, 'Miguel Nunes', 'miguel.nunes85@email.com', 369258147, '1985-05-17', 'A+', 88.2, 'Masculino', 1, '0000-00-00'),
+(13, 'Luana Texeira', 'Luna.texeira@gmail.com', 312314567, '1999-08-05', 'A+', 65, 'Feminino', 1, '0000-00-00'),
 (14, 'Junior Cavalcante', 'Junior.valc@gmail.com', 345678234, '2000-04-06', 'O-', 76, 'Masculino', 1, '0000-00-00');
 
 -- --------------------------------------------------------
@@ -116,7 +116,9 @@ INSERT INTO `doacoes` (`id`, `id_dador`, `data`, `hora`, `estado`, `observacoes`
 (9, 11, '2022-08-07', '12:25:00', 'Concluído', NULL),
 (10, 12, '2019-05-21', '17:30:00', 'Concluído', NULL),
 (11, 11, '2025-01-31', '15:00:00', 'Agendado', NULL),
-(12, 10, '2025-01-31', '10:30:00', 'Agendado', NULL);
+(12, 10, '2025-01-31', '10:30:00', 'Agendado', NULL),
+(13, 11, '2025-02-04', '19:00:00', 'Concluído', NULL),
+(14, 13, '2025-02-05', '12:30:00', 'Concluído', NULL);
 
 -- --------------------------------------------------------
 
@@ -168,11 +170,15 @@ CREATE TABLE `hospitais` (
 --
 
 INSERT INTO `hospitais` (`id`, `nome`, `endereco`, `telefone`, `email`, `nome_responsavel`, `estado`) VALUES
-(1, 'Hospital Sant’Ana de A-do-Barbas', 'Rua da Capela, 2405-001, Leiria, Portugal', '+351 244 123 456', 'contato@hospital-santana.pt', 'Dr. Manuel Ferreira', 0),
+(1, 'Hospital Sant’Ana de A-do-Barbas', 'Rua da Capela, 2405-001, Leiria, Portugal', '+351 244 123 456', 'contato@hospital-santana.pt', 'Dr. Manuel Ferreira', 1),
 (2, 'Hospital Beata Aline de Luanda', 'Avenida da Esperança, 3100-285, Pombal, Portugal', '+351 236 987 654', 'geral@hospital-beataaline.pt', 'Dra. Catarina Silva', 0),
-(3, 'Hospital Madre Juliana de Campo Grande', 'Largo dos Milagres, 2430-014, Marinha Grande, Portugal', '+351 244 321 789', 'geral@hospital-madrejuliana.pt', 'Dr. Ricardo Mendes', 0),
+(3, 'Hospital Madre Juliana de Campo Grande', 'Largo dos Milagres, 2430-014, Marinha Grande, Portugal', '+351 244 321 789', 'geral@hospital-madrejuliana.pt', 'Dr. Ricardo Mendes', 1),
 (4, 'Hospital Nossa Senhora de Lenice', 'Travessa da Saúde, 2434-020, Batalha, Portugal', '+351 244 654 321', 'contato@hospital-nslenice.pt', 'Dra. Ana Beatriz Lopes', 0),
-(5, 'Hospital Irmã Rebeca de Recife', 'Estrada dos Anjos, 2480-169, Porto de Mós, Portugal', '+351 244 852 963', 'contato@hospital-irmarebeca.pt', 'Dr. João Pereira', 0);
+(5, 'Hospital Irmã Rebeca de Recife', 'Estrada dos Anjos, 2480-169, Porto de Mós, Portugal', '+351 244 852 963', 'contato@hospital-irmarebeca.pt', 'Dr. João Pereira', 0),
+(6, 'Hospital São João de Lisboa', 'Avenida João XXIII, 1000-100, Lisboa, Portugal', '+351 210 123 456', 'geral@hospital-saojoao.pt', 'Dr. José Almeida', 1),
+(7, 'Hospital Santa Maria do Porto', 'Rua de Santa Catarina, 4000-267, Porto, Portugal', '+351 220 654 321', 'contato@hospital-santamaria.pt', 'Dra. Clara Costa', 1),
+(8, 'Hospital de São Pedro de Braga', 'Rua da Ponte, 4710-434, Braga, Portugal', '+351 253 987 654', 'geral@hospital-saopedro.pt', 'Dr. Fernando Lima', 0),
+(9, 'Hospital Nossa Senhora da Graça', 'Avenida da Liberdade, 5000-001, Coimbra, Portugal', '+351 239 852 963', 'contato@hospital-ssaograça.pt', 'Dr. João Pereira', 0);
 
 -- --------------------------------------------------------
 
@@ -219,13 +225,15 @@ ALTER TABLE `dadores`
 -- Índices para tabela `doacoes`
 --
 ALTER TABLE `doacoes`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_dador` (`id_dador`);
 
 --
 -- Índices para tabela `exames`
 --
 ALTER TABLE `exames`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_bolsa` (`id_bolsa`);
 
 --
 -- Índices para tabela `hospitais`
@@ -237,7 +245,9 @@ ALTER TABLE `hospitais`
 -- Índices para tabela `transfusoes`
 --
 ALTER TABLE `transfusoes`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_bolsa` (`id_bolsa`),
+  ADD KEY `id_hospital` (`id_hospital`);
 
 --
 -- AUTO_INCREMENT de tabelas despejadas
@@ -259,7 +269,7 @@ ALTER TABLE `dadores`
 -- AUTO_INCREMENT de tabela `doacoes`
 --
 ALTER TABLE `doacoes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de tabela `exames`
@@ -271,13 +281,42 @@ ALTER TABLE `exames`
 -- AUTO_INCREMENT de tabela `hospitais`
 --
 ALTER TABLE `hospitais`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de tabela `transfusoes`
 --
 ALTER TABLE `transfusoes`
   MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Restrições para despejos de tabelas
+--
+
+--
+-- Limitadores para a tabela `bolsas_sangue`
+--
+ALTER TABLE `bolsas_sangue`
+  ADD CONSTRAINT `bolsas_sangue_ibfk_1` FOREIGN KEY (`id`) REFERENCES `doacoes` (`id`);
+
+--
+-- Limitadores para a tabela `doacoes`
+--
+ALTER TABLE `doacoes`
+  ADD CONSTRAINT `doacoes_ibfk_1` FOREIGN KEY (`id_dador`) REFERENCES `dadores` (`id`);
+
+--
+-- Limitadores para a tabela `exames`
+--
+ALTER TABLE `exames`
+  ADD CONSTRAINT `exames_ibfk_1` FOREIGN KEY (`id_bolsa`) REFERENCES `bolsas_sangue` (`id`);
+
+--
+-- Limitadores para a tabela `transfusoes`
+--
+ALTER TABLE `transfusoes`
+  ADD CONSTRAINT `transfusoes_ibfk_1` FOREIGN KEY (`id_bolsa`) REFERENCES `bolsas_sangue` (`id`),
+  ADD CONSTRAINT `transfusoes_ibfk_2` FOREIGN KEY (`id_hospital`) REFERENCES `hospitais` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

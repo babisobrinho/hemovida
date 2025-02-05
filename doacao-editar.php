@@ -1,13 +1,15 @@
 <?php
 
     include 'partials/header.php';
-    include 'includes/doacao_id.php';
-    include 'includes/doacao_info.php';
+    include 'includes/obter_registo.php';
+
+    $doacao = $record;
+    $dadoresAtivos = getActiveDadores($pdo)['dadoresAtivos'];
 
     $pageTitle = "Editar Doação";
     $breadcrumbItems = [
         ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
-        ['title' => 'Agenda', 'url' => 'agenda.php', 'active' => false],
+        ['title' => 'Agenda', 'url' => 'doacoes.php', 'active' => false],
         ['title' => 'Editar Doação', 'url' => '#', 'active' => true]
     ];
     
@@ -19,8 +21,9 @@
         <div class="row d-flex align-items-center justify-content-center py-4">
             <div class="col-lg-6 col-md-9 col-12">
                 <div class="card">
-                    <form action="includes/doacao_editar.php" method="POST">
+                    <form action="includes/update.php" method="POST">
                         <input type="hidden" name="id" value="<?php echo $doacao['id']; ?>">
+                        <input type="hidden" name="table" value="doacoes">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12 mb-3">
@@ -55,7 +58,7 @@
                             </div>
                         </div>
                         <div class="card-footer d-flex align-items-center justify-content-end gap-2 border-0 bg-white">
-                            <a href="agenda.php" class="btn btn-light border">Cancelar</a>
+                            <a href="doacoes.php" class="btn btn-light border">Cancelar</a>
                             <button type="submit" class="btn btn-success">Salvar Alterações</button>
                         </div>
                     </form>

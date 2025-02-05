@@ -1,5 +1,5 @@
 <?php
-    include 'includes/db_connection.php';
+    include 'config/config.php';
 ?>
 
 <!DOCTYPE html>
@@ -55,12 +55,12 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="agenda.php">
+                                    <a class="dropdown-item" href="doacoes.php">
                                         <i class="fa-regular fa-calendar"></i> Doações
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="inventario.php">
+                                    <a class="dropdown-item" href="bolsas_sangue.php">
                                         <i class="fa-solid fa-droplet"></i> Inventário
                                     </a>
                                 </li>
