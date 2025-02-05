@@ -1,7 +1,7 @@
 # HemoVida - Centro de Doações de Sangue
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/babisobrinho/hemovida/refs/heads/main/assets/images/logo_square.png">
+  <img src="assets/images/logo_square.png">
 </p>
 
 Este projeto é um sistema de gestão de doações de sangue desenvolvido com as tecnologias PHP e Bootstrap, mas com ênfase em SQL.
@@ -50,8 +50,12 @@ http://localhost/hemovida/
 │   ├── js/                 # Ficheiros JavaScript
 │   └── images/             # Imagens usadas no site
 │
-├── includes/               # Ficheiros PHP que são incluídos nas páginas (funções, conexões com a BD)
-│   └── db_connection.php   # Conexão com a base de dados
+├── includes/               # Ficheiros PHP que são incluídos nas páginas
+│   ├── db_connection.php   # Conexão com a base de dados
+│   ├── db_functions.php    # Funções que fazem consultas à base de dados
+│   ├── destroy.php         # Remove registos da base de dados
+│   ├── store.php           # Cria registos na base de dados
+│   └── update.php          # Atualiza registos da base de dados
 │
 ├── partials/               # Ficheiros PHP que são parte do layout das páginas
 │   ├── footer.php          # Rodapé comum para todas as páginas
@@ -63,21 +67,47 @@ http://localhost/hemovida/
 │   └── setup.sql           # Script para a criação da base de dados e das tabelas
 │
 ├── config/                 # Configurações gerais do projeto
-│   └── config.php          # Configurações do sistema (ex. credenciais da base de dados)
+│   └── config.php          # Configurações do sistema
 │
-├── index.php               # Página inicial
+├── index.php               # Página inicial / Dashboard
+├── bolsas_sangue.php       # Página de inventário de bolsas de sangue
 ├── dadores.php             # Página de gestão de doadores
-├── agenda.php              # Página de agenda de doações
-├── inventario.php          # Página de inventário de bolsas de sangue
+├── doacoes.php             # Página de agenda de doações
 ├── exames.php              # Página de exames realizados ao sangue
-├── transfusoes.php         # Página de transfusões de sangue realizadas
 ├── hospitais.php           # Página de hospitais parceiros
+├── transfusoes.php         # Página de transfusões de sangue realizadas
+├── sobre.php               # Página que explica sobre o que é o projeto
 │
 ├── README.md               # Ficheiro com as informações sobre o projeto
 │
-└── .gitignore              # Ficheiro para ignorar os ficheiros que não devem ser versionados
+└── .gitignore              # Ficheiro para ignorar o que não deve ser versionado
 
 ```
+
+## 🛢️ Base de Dados
+
+  <p align="center">
+    <img src="assets/images/database.png">
+  </p>
+
+  A base de dados do projeto HemoVida foi projetada para gerir o processo de doação e transfusão de sangue de forma eficiente. Ela é composta por diversas tabelas interligadas que armazenam e organizam informações sobre doadores, doações, bolsas de sangue, transfusões e exames médicos.
+
+### 📁 Principais Entidades
+
+- `dadores`: contém as informações pessoais dos dodores de sangue, como nome, e-mail, número único de utente, tipo sanguíneo, peso, sexo, estado e data de inscrição
+- `doacoes`: controla as marcações feitas para doação de sangue, associando cada doação a um dador. Regista a data, hora, o estado da doação e observações adicionais
+- `bolsas_sangue`: controla o inventário de bolsas de sangue coletadas, associando cada uma a um dador. Regista o volume de sangue, a data de coleta, a data de validade e o estado
+- `exames`: contém os exames médicos realizados nas bolsas de sangue. Regista os níveis de hemoglobina e os resultados de testes para doenças como hepatite, HIV, chagas e sífilis. Por fim, também registado o resultado do exame
+- `hospitais`: contém as informações sobre os hospitais parceiros. Regista o nome, endereço, contato e o nome do responsável do hospital
+- `transfusoes`: relaciona as bolsas de sangue a pacientes que recebem transfusões nos hospitais. Regista o ID da bolsa de sangue, o número único de utente do receptor, a data da transfusão e o hospital onde foi realizada
+
+### 🔗 Relacionamentos
+
+- `dadores` ↔ `doacoes`: um doador pode realizar várias doações
+- `doacoes` ↔ `bolsas_sangue`: cada doação pode gerar uma ou mais bolsas de sangue
+- `bolsas_sangue` ↔ `exames`: todas as bolsas são submetidas a exames antes de serem utilizadas
+- `bolsas_sangue` ↔ `transfusoes`: apenas as bolsas aprovadas podem ser utilizadas para transfusões
+- `transfusoes` ↔ `hospitais`: as transfusões são realizadas em hospitais registados como parceiros
 
 ## ⚙ Tecnologias Utilizadas
 
