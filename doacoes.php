@@ -127,7 +127,7 @@
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p>Nenhuma doação agendada para <?php echo $dataSelecionada; ?>.</p>
+            <p class="text-center">Nenhuma doação agendada para <?php echo $dataSelecionada; ?>.</p>
         <?php endif; ?>
     </div>
 </div>
