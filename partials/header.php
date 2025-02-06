@@ -23,7 +23,7 @@
 </head>
 <body>
 
-    <nav class="navbar bg-light fixed-top">
+    <nav class="navbar fixed-top" style="background-color: #f1f1f1;">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
                 <img src="assets/images/logo_horizontal.png" alt="HemoVida Logo" height="24">
@@ -43,6 +43,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/sobre.php">Sobre</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/base-de-dados.php">Base de Dados</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

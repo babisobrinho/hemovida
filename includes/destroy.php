@@ -3,6 +3,7 @@
     include 'db_functions.php';
 
     if (isset($_GET['id']) && isset($_GET['table'])) {
+        
         $id = $_GET['id'];
         $table = $_GET['table'];
     

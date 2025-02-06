@@ -31,13 +31,8 @@
 
     <div class="container py-2 mt-4 mb-4">
         <?php if(count($doacoes) > 0): ?>
-            <?php
-                
-                foreach($doacoes as $index => $doacao):
-
-                    $detalhes = getDoacaoDetails($pdo, $doacao, $dataSelecionada);
-
-            ?>
+            <?php foreach($doacoes as $index => $doacao):
+                $detalhes = getDoacaoDetails($pdo, $doacao, $dataSelecionada); ?>
                 <div class="row">
                     <div class="col-auto text-center flex-column d-none d-sm-flex">
                         <div class="row h-50">
