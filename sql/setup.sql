@@ -33,7 +33,7 @@ CREATE TABLE `bolsas_sangue` (
   `volume_ml` double NOT NULL,
   `data_coleta` date NOT NULL,
   `validade` date NOT NULL,
-  `estado` enum('Disponível','Reservada','Utilizada','Vencida') NOT NULL
+  `estado` enum('disponivel','reservada','utilizada','vencida') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -41,16 +41,16 @@ CREATE TABLE `bolsas_sangue` (
 --
 
 INSERT INTO `bolsas_sangue` (`id`, `id_dador`, `volume_ml`, `data_coleta`, `validade`, `estado`) VALUES
-(1, 1, 450, '2018-06-15', '2018-09-13', 'Utilizada'),
-(2, 1, 470, '2020-09-22', '2020-12-21', 'Vencida'),
-(3, 8, 460, '2017-03-10', '2017-06-08', 'Utilizada'),
-(4, 8, 450, '2019-12-05', '2020-03-04', 'Vencida'),
-(5, 9, 480, '2016-07-28', '2016-10-26', 'Utilizada'),
-(6, 9, 470, '2021-04-18', '2021-07-17', 'Utilizada'),
-(7, 10, 455, '2015-11-30', '2016-02-28', 'Vencida'),
-(8, 10, 460, '2023-02-14', '2025-05-15', 'Disponível'),
-(9, 11, 470, '2022-08-07', '2022-11-06', 'Utilizada'),
-(10, 12, 450, '2019-05-21', '2019-08-19', 'Vencida');
+(1, 1, 450, '2018-06-15', '2018-09-13', 'utilizada'),
+(2, 1, 470, '2020-09-22', '2020-12-21', 'vencida'),
+(3, 8, 460, '2017-03-10', '2017-06-08', 'utilizada'),
+(4, 8, 450, '2019-12-05', '2020-03-04', 'vencida'),
+(5, 9, 480, '2016-07-28', '2016-10-26', 'utilizada'),
+(6, 9, 470, '2021-04-18', '2021-07-17', 'utilizada'),
+(7, 10, 455, '2015-11-30', '2016-02-28', 'vencida'),
+(8, 10, 460, '2023-02-14', '2025-05-15', 'disponivel'),
+(9, 11, 470, '2022-08-07', '2022-11-06', 'utilizada'),
+(10, 12, 450, '2019-05-21', '2019-08-19', 'cencida');
 
 -- --------------------------------------------------------
 
@@ -66,7 +66,7 @@ CREATE TABLE `dadores` (
   `data_nascimento` date NOT NULL,
   `tipo_sanguineo` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') NOT NULL,
   `peso` float NOT NULL,
-  `sexo` enum('Masculino','Feminino') NOT NULL,
+  `sexo` enum('masculino','feminino') NOT NULL,
   `estado` tinyint(1) NOT NULL,
   `data_inscricao` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -76,14 +76,14 @@ CREATE TABLE `dadores` (
 --
 
 INSERT INTO `dadores` (`id`, `nome`, `email`, `n_utente`, `data_nascimento`, `tipo_sanguineo`, `peso`, `sexo`, `estado`, `data_inscricao`) VALUES
-(1, 'João Oliveira', 'joao.oliveira98@email.com', 123456789, '1998-04-15', 'O+', 72.5, 'Masculino', 1, '0000-00-00'),
-(8, 'Rafael Moreira', 'rafael.moreira92@email.com', 123456779, '1992-07-21', 'O+', 74.5, 'Masculino', 1, '0000-00-00'),
-(9, 'Beatriz Almeida', 'beatriz.almeida88@email.com', 987654321, '1988-11-03', 'A-', 62.3, 'Feminino', 1, '0000-00-00'),
-(10, 'Lucas Ferreira', 'lucas.ferreira95@email.com', 456123789, '1995-03-12', 'B+', 80.7, 'Masculino', 1, '0000-00-00'),
-(11, 'Sofia Costa', 'sofia.costa99@email.com', 741852963, '1999-09-28', 'AB-', 55.8, 'Feminino', 1, '0000-00-00'),
-(12, 'Miguel Nunes', 'miguel.nunes85@email.com', 369258147, '1985-05-17', 'A+', 88.2, 'Masculino', 1, '0000-00-00'),
-(13, 'Luana Texeira', 'Luna.texeira@gmail.com', 312314567, '1999-08-05', 'A+', 65, 'Feminino', 1, '0000-00-00'),
-(14, 'Junior Cavalcante', 'Junior.valc@gmail.com', 345678234, '2000-04-06', 'O-', 76, 'Masculino', 1, '0000-00-00');
+(1, 'João Oliveira', 'joao.oliveira98@email.com', 123456789, '1998-04-15', 'O+', 72.5, 'masculino', 1, '2025-02-06'),
+(8, 'Rafael Moreira', 'rafael.moreira92@email.com', 123456779, '1992-07-21', 'O+', 74.5, 'masculino', 1, '2025-02-06'),
+(9, 'Beatriz Almeida', 'beatriz.almeida88@email.com', 987654321, '1988-11-03', 'A-', 62.3, 'feminino', 1, '2025-02-06'),
+(10, 'Lucas Ferreira', 'lucas.ferreira95@email.com', 456123789, '1995-03-12', 'B+', 80.7, 'masculino', 1, '2025-02-06'),
+(11, 'Sofia Costa', 'sofia.costa99@email.com', 741852963, '1999-09-28', 'AB-', 55.8, 'feminino', 1, '2025-02-06'),
+(12, 'Miguel Nunes', 'miguel.nunes85@email.com', 369258147, '1985-05-17', 'A+', 88.2, 'masculino', 1, '2025-02-06'),
+(13, 'Luana Texeira', 'Luna.texeira@gmail.com', 312314567, '1999-08-05', 'A+', 65, 'feminino', 1, '2025-02-06'),
+(14, 'Junior Cavalcante', 'Junior.valc@gmail.com', 345678234, '2000-04-06', 'O-', 76, 'masculino', 1, '2025-02-06');
 
 -- --------------------------------------------------------
 
@@ -96,7 +96,7 @@ CREATE TABLE `doacoes` (
   `id_dador` int(11) NOT NULL,
   `data` date NOT NULL,
   `hora` time NOT NULL,
-  `estado` enum('Agendado','Concluído','Cancelado') NOT NULL,
+  `estado` enum('agendado','em_atendimento','concluido','cancelado') NOT NULL,
   `observacoes` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -105,20 +105,20 @@ CREATE TABLE `doacoes` (
 --
 
 INSERT INTO `doacoes` (`id`, `id_dador`, `data`, `hora`, `estado`, `observacoes`) VALUES
-(1, 1, '2018-06-15', '10:30:00', 'Concluído', NULL),
-(2, 1, '2020-09-22', '14:15:00', 'Concluído', NULL),
-(3, 8, '2017-03-10', '09:45:00', 'Concluído', NULL),
-(4, 8, '2019-12-05', '16:20:00', 'Concluído', NULL),
-(5, 9, '2016-07-28', '11:10:00', 'Concluído', NULL),
-(6, 9, '2021-04-18', '13:00:00', 'Concluído', NULL),
-(7, 10, '2015-11-30', '08:55:00', 'Concluído', NULL),
-(8, 10, '2023-02-14', '15:40:00', 'Concluído', NULL),
-(9, 11, '2022-08-07', '12:25:00', 'Concluído', NULL),
-(10, 12, '2019-05-21', '17:30:00', 'Concluído', NULL),
-(11, 11, '2025-01-31', '15:00:00', 'Agendado', NULL),
-(12, 10, '2025-01-31', '10:30:00', 'Agendado', NULL),
-(13, 11, '2025-02-04', '19:00:00', 'Concluído', NULL),
-(14, 13, '2025-02-05', '12:30:00', 'Concluído', NULL);
+(1, 1, '2018-06-15', '10:30:00', 'concluido', NULL),
+(2, 1, '2020-09-22', '14:15:00', 'concluido', NULL),
+(3, 8, '2017-03-10', '09:45:00', 'concluido', NULL),
+(4, 8, '2019-12-05', '16:20:00', 'concluido', NULL),
+(5, 9, '2016-07-28', '11:10:00', 'concluido', NULL),
+(6, 9, '2021-04-18', '13:00:00', 'concluido', NULL),
+(7, 10, '2015-11-30', '08:55:00', 'concluido', NULL),
+(8, 10, '2023-02-14', '15:40:00', 'concluido', NULL),
+(9, 11, '2022-08-07', '12:25:00', 'concluido', NULL),
+(10, 12, '2019-05-21', '17:30:00', 'concluido', NULL),
+(11, 11, '2025-01-31', '15:00:00', 'agendado', NULL),
+(12, 10, '2025-01-31', '10:30:00', 'agendado', NULL),
+(13, 11, '2025-02-04', '19:00:00', 'concluido', NULL),
+(14, 13, '2025-02-05', '12:30:00', 'concluido', NULL);
 
 -- --------------------------------------------------------
 
@@ -135,7 +135,7 @@ CREATE TABLE `exames` (
   `hiv` tinyint(1) NOT NULL,
   `chagas` tinyint(1) NOT NULL,
   `sifilis` tinyint(1) NOT NULL,
-  `resultado` enum('Em Análise','Aprovado','Reprovado') NOT NULL
+  `resultado` enum('em_analise','aprovado','reprovado') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -143,11 +143,11 @@ CREATE TABLE `exames` (
 --
 
 INSERT INTO `exames` (`id`, `id_bolsa`, `data`, `hemoglobina`, `hepatite`, `hiv`, `chagas`, `sifilis`, `resultado`) VALUES
-(1, 1, '2018-06-15', 14.2, 0, 0, 0, 0, 'Aprovado'),
-(2, 3, '2017-03-10', 13.8, 0, 0, 0, 0, 'Aprovado'),
-(3, 5, '2016-07-28', 14.5, 0, 0, 0, 0, 'Aprovado'),
-(4, 6, '2021-04-18', 13.9, 0, 0, 0, 0, 'Aprovado'),
-(5, 9, '2022-08-07', 14.1, 0, 0, 0, 0, 'Aprovado');
+(1, 1, '2018-06-15', 14.2, 0, 0, 0, 0, 'aprovado'),
+(2, 3, '2017-03-10', 13.8, 0, 0, 0, 0, 'aprovado'),
+(3, 5, '2016-07-28', 14.5, 0, 0, 0, 0, 'aprovado'),
+(4, 6, '2021-04-18', 13.9, 0, 0, 0, 0, 'aprovado'),
+(5, 9, '2022-08-07', 14.1, 0, 0, 0, 0, 'aprovado');
 
 -- --------------------------------------------------------
 
