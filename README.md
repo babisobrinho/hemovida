@@ -8,6 +8,10 @@ Este projeto é um sistema de gestão de doações de sangue desenvolvido com as
 
 O SQL foi a tecnologia central deste projeto, sendo utilizado para estruturar e organizar a base de dados, garantindo a integridade e a acessibilidade das informações. Através de consultas SQL, foi possível criar páginas dinâmicas, realizar atualizações em tempo real e fazer a gestão das interações entre as diversas funcionalidades da plataforma. O SQL foi fundamental para a construção das tabelas, a definição de relacionamentos e a execução de operações de consulta e manipulação de dados.
 
+## 🚀 Demo
+
+É possível aceder à demonstração do nosso website através deste link 👉🏻 https://hemovida.sindces.pt/
+
 ## 📌 Funcionalidades
 
 - Acompanhamento dos dadores de sangue;
