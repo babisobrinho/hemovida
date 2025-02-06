@@ -77,20 +77,25 @@
                                     <p>
                                         <?php
                                             switch($doacao['estado']) {
-                                                case "Concluído":
+                                                case "concluido":
                                                     echo '<span class="float-right badge bg-success">';
-                                                    echo $doacao['estado'];
+                                                    echo 'Concluído';
                                                     echo '</span>';
                                                     break;
-                                                case "Cancelado":
+                                                case "em_atendimento":
+                                                    echo '<span class="float-right badge text-dark bg-light border">';
+                                                    echo 'Em Atendimento';
+                                                    echo '</span>';
+                                                    break;
+                                                case "cancelado":
                                                     echo '<span class="float-right badge bg-danger">';
-                                                    echo $doacao['estado'];
+                                                    echo 'Cancelado';
                                                     echo '</span>';
                                                     break;
-                                                case "Agendado":
+                                                case "agendado":
                                                 default:
                                                     echo '<span class="float-right badge" style="background-color: #202d3b;">';
-                                                    echo $doacao['estado'];
+                                                    echo 'Agendado';
                                                     echo '</span>';
                                                     break;
                                             }

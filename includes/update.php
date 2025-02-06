@@ -43,21 +43,7 @@
             if (isset($_POST['dador'])) { $data['id_dador'] = $_POST['dador']; }
             if (isset($_POST['data'])) { $data['data'] = $_POST['data']; }
             if (isset($_POST['hora'])) { $data['hora'] = $_POST['hora']; }
-            if (isset($_POST['estado'])) { 
-                $estado = $_POST['estado']; 
-                switch ($estado) {
-                    case "concluido":
-                        $data['estado'] = "Concluído";
-                        break;
-                    case "cancelado":
-                        $data['estado'] = "Cancelado";
-                        break;
-                    case "agendado":
-                    default:
-                        $data['estado'] = "Agendado";
-                        break;
-                }
-            }
+            if (isset($_POST['estado'])) { $data['estado'] = $_POST['estado']; }
 
             $location = "../doacoes.php?dataSelecionada=" . $data['data'];
 

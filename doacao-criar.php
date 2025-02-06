@@ -47,11 +47,13 @@
                                     <select class="form-select" name="estado" id="estado" data-live-search="true" required>
                                         <option value="" disabled>Escolha um estado</option>
                                         <option value="agendado">Agendado</option>
+                                        <option value="em_atendimento">Em Atendimento</option>
                                         <option value="concluido">Concluído</option>
                                         <option value="cancelado">Cancelado</option>
                                     </select>
                                 </div>
                             </div>
+                            <input type="hidden" name="table" value="doacoes">
                         </div>
                         <div class="card-footer d-flex align-items-center justify-content-end gap-2 border-0 bg-white">
                             <a href="doacoes.php" class="btn btn-light border">

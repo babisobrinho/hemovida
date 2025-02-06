@@ -51,6 +51,7 @@
                                     <label class="form-label" for="estado">Estado</label>
                                     <select class="form-select" name="estado" id="estado" data-live-search="true" required>
                                         <option value="agendado" <?php echo $doacao['estado'] == 'Agendado' ? 'selected' : ''; ?>>Agendado</option>
+                                        <option value="em_atendimento" <?php echo $doacao['estado'] == 'Agendado' ? 'selected' : ''; ?>>Em Atendimento</option>
                                         <option value="concluido" <?php echo $doacao['estado'] == 'Concluído' ? 'selected' : ''; ?>>Concluído</option>
                                         <option value="cancelado" <?php echo $doacao['estado'] == 'Cancelado' ? 'selected' : ''; ?>>Cancelado</option>
                                     </select>

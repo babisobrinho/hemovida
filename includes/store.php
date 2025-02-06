@@ -42,21 +42,7 @@
             if (isset($_POST['dador'])) { $data['id_dador'] = $_POST['dador']; }
             if (isset($_POST['data'])) { $data['data'] = $_POST['data']; }
             if (isset($_POST['hora'])) { $data['hora'] = $_POST['hora']; }
-            if (isset($_POST['estado'])) { 
-                $estado = $_POST['estado']; 
-                switch ($estado) {
-                    case "concluido":
-                        $data['estado'] = "Concluído";
-                        break;
-                    case "cancelado":
-                        $data['estado'] = "Cancelado";
-                        break;
-                    case "agendado":
-                    default:
-                        $data['estado'] = "Agendado";
-                        break;
-                }
-            }
+            if (isset($_POST['estado'])) { $data['estado'] = $_POST['estado']; }
 
             if (!isset($data['id_dador']) || !isset($data['data']) || !isset($data['hora']) || !isset($data['estado'])) {
                 die("Erro: Todos os campos são obrigatórios.");
@@ -120,7 +106,7 @@
 
     try {
         $stmt->execute();
-        header("Location: " . $location . "?status=success");
+        header("Location: " . $location);
         exit;
     } catch (PDOException $e) {
         die("Erro ao criar registo: " . $e->getMessage());

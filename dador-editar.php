@@ -63,8 +63,8 @@
                                 <label class="form-label" for="sexo">Sexo</label>
                                 <select class="form-select" name="sexo" id="sexo" data-live-search="true" required>
                                     <option value="">Escolha um sexo</option>
-                                    <option value="Feminino" <?php echo $dador['sexo'] == 'Feminino' ? 'selected' : ''; ?>>Feminino</option>
-                                    <option value="Masculino" <?php echo $dador['sexo'] == 'Masculino' ? 'selected' : ''; ?>>Masculino</option>
+                                    <option value="feminino" <?php echo $dador['sexo'] == 'feminino' ? 'selected' : ''; ?>>Feminino</option>
+                                    <option value="masculino" <?php echo $dador['sexo'] == 'masculino' ? 'selected' : ''; ?>>Masculino</option>
                                 </select>
                             </div>
                             <div class="col-lg-4 col-md-6 col-12 mb-3">
