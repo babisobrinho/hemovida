@@ -1,6 +1,5 @@
 <?php
     ob_start(); // Inicia o buffer de saída para evitar problemas com o header()
-    include 'config/config.php';
     include 'partials/header.php';
 
     $pageTitle = "Hospitais Parceiros";
