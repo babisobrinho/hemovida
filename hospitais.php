@@ -57,6 +57,10 @@
 <div class="container p-4">
     <?php include 'partials/page-header.php'; ?>
 
+    <div class="d-flex justify-content-end mb-3">
+        <a href="hospital-criar.php" class="btn btn-primary">Novo+</a>
+    </div>
+
     <!--  Exibir mensagens de sucesso -->
     <?php if (isset($_GET['success'])): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
