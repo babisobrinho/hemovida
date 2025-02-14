@@ -1,5 +1,5 @@
 <?php
-    ob_start(); // Inicia o buffer de saída para evitar problemas com o header()
+    ob_start(); 
     include 'config/config.php';
     include 'partials/header.php';
 
@@ -12,12 +12,23 @@
     $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Consulta sem filtro de busca
-    $stmt = $pdo->prepare("SELECT * FROM hospitais");
-    $stmt->execute();
-    $hospitais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Exclusão de hospital
+    if (isset($_GET['delete_id'])) {
+        $id = $_GET['delete_id'];
 
-    // Função para alterar o estado de um hospital
+        try {
+            $stmt = $pdo->prepare("DELETE FROM hospitais WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+
+            // Redireciona para evitar reenvio do formulário e exibir a mensagem de sucesso
+            header("Location: hospitais.php?success=excluido");
+            exit();
+        } catch (PDOException $e) {
+            die("<p class='text-danger text-center'>Erro ao excluir hospital: " . $e->getMessage() . "</p>");
+        }
+    }
+
+    // Alterar o estado de um hospital
     if (isset($_GET['toggle_id'])) {
         $id = $_GET['toggle_id'];
         $stmt = $pdo->prepare("SELECT estado FROM hospitais WHERE id = :id");
@@ -29,11 +40,16 @@
             $updateStmt = $pdo->prepare("UPDATE hospitais SET estado = :estado WHERE id = :id");
             $updateStmt->execute(['estado' => $novoEstado, 'id' => $id]);
 
-            // Redireciona de volta para a página de hospitais após a alteração
+            // Redireciona para a página após alteração
             header("Location: " . $_SERVER['PHP_SELF'] . "?success=estado_alterado");
-            exit;
+            exit();
         }
     }
+
+    // Consulta hospitais
+    $stmt = $pdo->prepare("SELECT * FROM hospitais");
+    $stmt->execute();
+    $hospitais = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     ob_end_flush(); // Libera o buffer de saída
 ?>
@@ -41,7 +57,7 @@
 <div class="container p-4">
     <?php include 'partials/page-header.php'; ?>
 
-    <!-- ✅ Adicionando a mensagem de sucesso -->
+    <!--  Exibir mensagens de sucesso -->
     <?php if (isset($_GET['success'])): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <?php
@@ -63,12 +79,12 @@
             <div class="col-md-4 mb-4">
                 <div class="card h-100 d-flex flex-column shadow-lg">
                     <div class="card-body flex-grow-1 d-flex flex-column">
-                        <h5 class="card-title"> <?= $hospital['nome'] ?> </h5>
+                        <h5 class="card-title"> <?= htmlspecialchars($hospital['nome']) ?> </h5>
                         <p class="card-text flex-grow-1">
-                            <strong>Endereço:</strong> <?= $hospital['endereco'] ?><br>
-                            <strong>Telefone:</strong> <?= $hospital['telefone'] ?><br>
-                            <strong>Email:</strong> <a href="mailto:<?= $hospital['email'] ?>"><?= $hospital['email'] ?></a><br>
-                            <strong>Responsável:</strong> <?= $hospital['nome_responsavel'] ?><br>
+                            <strong>Endereço:</strong> <?= htmlspecialchars($hospital['endereco']) ?><br>
+                            <strong>Telefone:</strong> <?= htmlspecialchars($hospital['telefone']) ?><br>
+                            <strong>Email:</strong> <a href="mailto:<?= htmlspecialchars($hospital['email']) ?>"><?= htmlspecialchars($hospital['email']) ?></a><br>
+                            <strong>Responsável:</strong> <?= htmlspecialchars($hospital['nome_responsavel']) ?><br>
                             <strong>Estado:</strong>
                             <a href="?toggle_id=<?= $hospital['id'] ?>" class="btn btn-sm <?= $hospital['estado'] == 1 ? 'btn-success' : 'btn-danger' ?>">
                                 <?= $hospital['estado'] == 1 ? 'Ativo' : 'Inativo' ?>
@@ -78,7 +94,7 @@
                             <a href="hospital-editar.php?id=<?= $hospital['id'] ?>" class="btn btn-sm btn-dark">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="excluir_hospital.php?id=<?= $hospital['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este hospital?');">
+                            <a href="?delete_id=<?= $hospital['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este hospital?');">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </div>
@@ -90,8 +106,6 @@
         <p class="text-center text-danger">Nenhum hospital cadastrado.</p>
     <?php endif; ?>
 </div>
-
-
 
 <!-- Footer -->
 <?php include 'partials/footer.php'; ?>
