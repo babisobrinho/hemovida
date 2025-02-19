@@ -174,7 +174,7 @@
     }
 
     /**
-     * Função para obter dados de uma função específica: obter a última doação e calcular a idade do dador
+     * Função para obter dados de uma doação específica: obter a última doação e calcular a idade do dador
      *
      * @param PDO $pdo Conexão com o banco de dados.
      * @param array $doacao Dados da doação específica.
@@ -214,6 +214,65 @@
             'ultima_doacao' => $ultima_doacao,
             'isPastDoacao' => $isPastDoacao
         ];
+    }
+
+    /**
+     * Mudar o estado de um registo em qualquer table
+     *
+     * @param PDO $pdo Conexão com a base de dados
+     * @param string $table O nome da tabela
+     * @param int $id O ID do registo
+     * @return bool Retorna verdadeiro se o estado for alterado com sucesso, caso contrário retorna falso
+     */
+    function toggleEstado(PDO $pdo, string $table, int $id): bool {
+
+        $allowedTables = ['bolsas_sangue', 'dadores', 'doacoes', 'hospitais', 'transfusoes'];
+        if (!in_array($table, $allowedTables)) {
+            error_log("Tentativa de acesso a tabela inválida: " . $table);
+            return false;
+        }
+
+        try {
+            
+            $sql = "SELECT estado FROM {$table} WHERE id = :id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+            $stmt->execute();
+            $currentEstado = $stmt->fetchColumn();
+
+            if ($currentEstado === false) {
+                error_log("Registo não encontrado na tabela {$table} com ID: " . $id);
+                return false;
+            }
+            
+            $newEstado = $currentEstado == 1 ? 0 : 1;
+
+            $updateSql = "UPDATE {$table} SET estado = :estado WHERE id = :id";
+            $updateStmt = $pdo->prepare($updateSql);
+            $updateStmt->bindParam(":estado", $newEstado, PDO::PARAM_INT);
+            $updateStmt->bindParam(":id", $id, PDO::PARAM_INT);
+            return $updateStmt->execute();
+
+        } catch (PDOException $e) {
+            error_log("Erro ao alternar estado na tabela {$table}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Mostrar mensagem de alerta
+     *
+     * @param string $message A mensagem que irá aparecer
+     * @param string $type O tipo de alerta
+     * @return string A cor do alerta
+     */
+    function displayAlert(string $message, string $type, string $alertClass): string {
+        return "
+            <div class='alert alert-$alertClass alert-dismissible fade show' role='alert'>
+                <strong>" . ucfirst($type) . "!</strong> $message
+                <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Fechar'></button>
+            </div>
+        ";
     }
 
 ?>

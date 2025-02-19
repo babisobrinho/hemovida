@@ -65,7 +65,18 @@
 
         case "hospitais":
 
-            // Adicionar campos
+            if (isset($_POST['nome'])) { $data['nome'] = $_POST['nome']; }
+            if (isset($_POST['endereco'])) { $data['endereco'] = $_POST['endereco']; }
+            if (isset($_POST['telefone'])) { $data['telefone'] = $_POST['telefone']; }
+            if (isset($_POST['email'])) { $data['email'] = $_POST['email']; }
+            if (isset($_POST['nome_responsavel'])) { $data['nome_responsavel'] = $_POST['nome_responsavel']; }
+            
+            if (isset($_POST['estado'])) { 
+                $data['estado'] = 1; 
+            } else { 
+                $data['estado'] = 0;
+            }
+
             $location = "../hospitais.php";
 
             break;

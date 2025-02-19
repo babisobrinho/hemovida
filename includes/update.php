@@ -3,7 +3,7 @@
     require_once __DIR__ . '/db_connection.php';
 
     if (!$pdo) {
-        die("Erro: Não foi possível conectar ao banco de dados.");
+        die("Erro: Não foi possível conectar a base de dados.");
     }
 
     $table = $_POST['table'];
@@ -58,7 +58,18 @@
 
         case "hospitais":
 
-            // Adicionar campos
+            if (isset($_POST['nome'])) { $nome = $_POST['nome']; $data['nome'] = $nome; }
+            if (isset($_POST['endereco'])) { $endereco = $_POST['endereco']; $data['endereco'] = $endereco; }
+            if (isset($_POST['telefone'])) { $telefone = $_POST['telefone']; $data['telefone'] = $telefone; }
+            if (isset($_POST['email'])) { $email = $_POST['email']; $data['email'] = $email; }
+            if (isset($_POST['nome_responsavel'])) { $nome_responsavel = $_POST['nome_responsavel']; $data['nome_responsavel'] = $nome_responsavel; }
+            
+            if (isset($_POST['estado'])) { 
+                $data['estado'] = 1; 
+            } else { 
+                $data['estado'] = 0;
+            }
+
             $location = "../hospitais.php";
 
             break;
