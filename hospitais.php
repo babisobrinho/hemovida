@@ -6,7 +6,7 @@
     if (isset($_GET['toggle_id'])) {
         $hospitalId = $_GET['toggle_id'];
         if (toggleEstado($pdo, 'hospitais', $hospitalId)) {
-            $_SESSION['alert_message'] = displayAlert('Estado do hospital alterado com sucesso!', 'sucesso', 'success');
+            $_SESSION['alert_message'] = displayAlert('Estado do hospital alterado com sucesso.', 'sucesso', 'success');
             header("Location: hospitais.php");
             exit;
         } else {

@@ -15,7 +15,7 @@
         <?php include 'partials/page-header.php'; ?>
         <div class="d-flex align-items-center justify-content-start gap-2 mb-2">
             <a href="dador-criar.php" class="btn text-white" style="background-color: #202d3b;">
-                <i class="fa-solid fa-plus"></i> Adicionar
+                <i class="fa-solid fa-plus"></i> Novo
             </a>
             <a href="" data-bs-toggle="modal" data-bs-target="#filterModalDador" data-dador-id="<?php echo $dador['id']; ?>" class="btn text-white d-none d-md-block" style="background-color: #202d3b;">
                 <i class="fa-solid fa-filter"></i> Filtrar

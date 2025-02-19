@@ -15,7 +15,10 @@
         <?php include 'partials/page-header.php'; ?>
         <div class="row d-flex align-items-center justify-content-center py-4">
             <div class="col-xl-6 col-md-10 col-12">
-                <div class="card shadow">
+                <div class="card shadow p-3">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title">Informações Pessoais</h5>
+                    </div>
                     <form action="includes/store.php" method="POST">
                         <div class="card-body">
                             <div class="row">
