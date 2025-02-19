@@ -14,7 +14,6 @@
 
 <div class="container p-4">
     <?php include 'partials/page-header.php'; ?>
-
     <div class="d-flex align-content-center justify-content-between">
         <div>
             <a href="doacao-criar.php" class="btn text-white" style="background-color: #202d3b;">
@@ -28,7 +27,6 @@
             </div>           
         </form>
     </div>
-
     <div class="container py-2 mt-4 mb-4">
         <?php if(count($doacoes) > 0): ?>
             <?php foreach($doacoes as $index => $doacao):

@@ -17,10 +17,9 @@
 
     <div class="container p-4">
         <?php include 'partials/page-header.php'; ?>
-
         <div class="row d-flex align-items-center justify-content-center py-4">
             <div class="col-lg-6 col-md-9 col-12">
-                <div class="card">
+                <div class="card shadow">
                     <form action="includes/update.php" method="POST">
                         <input type="hidden" name="id" value="<?php echo $doacao['id']; ?>">
                         <input type="hidden" name="table" value="doacoes">
