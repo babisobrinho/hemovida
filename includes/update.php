@@ -1,6 +1,5 @@
 <?php
-
-    require_once __DIR__ . '/db_connection.php';
+ require_once __DIR__ . '/db_connection.php';
 
     if (!$pdo) {
         die("Erro: Não foi possível conectar ao banco de dados.");
@@ -17,11 +16,45 @@
 
     switch ($table) {
         case "bolsas_sangue":
-
-            // Adicionar campos
-            $location = "../inventario.php";
-
+            // Coleta os dados do formulário
+            if (isset($_POST['id'])) { 
+                $id = $_POST['id']; 
+                $data['id'] = $id; 
+            }
+            if (isset($_POST['tipo_sanguineo'])) { 
+                $tipo_sanguineo = $_POST['tipo_sanguineo']; 
+                $data['tipo_sanguineo'] = $tipo_sanguineo; 
+            }
+            if (isset($_POST['volume_ml'])) { 
+                $volume_ml = $_POST['volume_ml']; 
+                $data['volume_ml'] = $volume_ml; 
+            }
+            if (isset($_POST['data_coleta'])) { 
+                $data_coleta = $_POST['data_coleta']; 
+                $data['data_coleta'] = $data_coleta; 
+            }
+            if (isset($_POST['estado'])) { 
+                $estado = $_POST['estado']; 
+                switch ($estado) {
+                    case "concluido":
+                        $data['estado'] = "Disponível";
+                        break;
+                    case "Reservada":
+                        $data['estado'] = "Reservada";
+                        break;
+                    case "Utilizada":
+                        $data['estado'] = "Utilizada";
+                        break;
+                    case "Vencida":
+                    default:
+                        $data['estado'] = "Vencida";
+                        break;
+                }
+            }
+    
+            $location = "../bolsas_sangue.php"; // Redirecionamento após a atualização
             break;
+    
         
         case "dadores":
 
@@ -97,6 +130,13 @@
         }
     }
 
+    $dateFields = ['data_coleta']; // Adicione outros campos de data, se necessário
+foreach ($data as $field => $value) {
+    if (in_array($field, $dateFields) && !validateDate($value)) {
+        die("Erro: Data inválida.");
+    }
+}
+
     $setParts = [];
     foreach ($data as $field => $value) {
         if (is_numeric($value)) {
@@ -130,5 +170,5 @@
     } catch (PDOException $e) {
         die("Erro ao atualizar registo: " . $e->getMessage());
     }
-
+   
 ?>
