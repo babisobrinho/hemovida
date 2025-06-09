@@ -1,7 +1,6 @@
 <?php
 session_start();
 include 'partials/header.php';
-include 'includes/obter_registo.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: bolsas_sangue.php');
@@ -22,53 +21,80 @@ if (!$conexao) {
 }
 
 // Busca os dados da bolsa de sangue
-$query = "SELECT bolsas_sangue.id, bolsas_sangue.data_coleta, bolsas_sangue.volume_ml, bolsas_sangue.estado, dadores.tipo_sanguineo
+$query = "SELECT bolsas_sangue.*, dadores.tipo_sanguineo, dadores.nome 
           FROM bolsas_sangue
           JOIN dadores ON bolsas_sangue.id_dador = dadores.id
           WHERE bolsas_sangue.id = $id_bolsa";
 $resultado = mysqli_query($conexao, $query);
 
 if (mysqli_num_rows($resultado) == 0) {
-    echo "Bolsa de sangue não encontrada.";
+    header('Location: bolsas_sangue.php');
     exit();
 }
 
-$bolsas = mysqli_fetch_assoc($resultado);
-var_dump($bolsas);
+$bolsa = mysqli_fetch_assoc($resultado);
 
 // Fecha a conexão com o banco de dados
 mysqli_close($conexao);
+
+$pageTitle = "Editar Bolsa de Sangue";
+$breadcrumbItems = [
+    ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
+    ['title' => 'Inventário', 'url' => 'bolsas_sangue.php', 'active' => false],
+    ['title' => 'Editar Bolsa', 'url' => '#', 'active' => true]
+];
 ?>
 
 <div class="container p-4">
-    <h2>Editar Bolsa de Sangue</h2>
-    <form method="POST" action="update.php">
-        <input type="hidden" name="table" value="bolsas_sangue">
-        <input type="hidden" name="id" value="<?= htmlspecialchars($bolsas['id'], ENT_QUOTES, 'UTF-8') ?>">
+    <?php include 'partials/page-header.php'; ?>
 
-        <div class="mb-3">
-            <label for="data_coleta" class="form-label">Data de Coleta</label>
-            <input type="date" class="form-control" id="data_coleta" name="data_coleta" value="<?= htmlspecialchars($bolsas['data_coleta'], ENT_QUOTES, 'UTF-8') ?>" required>
+    <div class="row d-flex align-items-center justify-content-center py-4">
+        <div class="col-xl-6 col-md-10 col-12">
+            <div class="card">
+                <form method="POST" action="includes/update.php">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label" for="id_dador">Doador</label>
+                                <input type="text" class="form-control" value="<?= htmlspecialchars($bolsa['nome'] . ' (' . $bolsa['tipo_sanguineo'] . ')', ENT_QUOTES, 'UTF-8') ?>" readonly>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="data_coleta">Data de Coleta</label>
+                                <input type="date" class="form-control" id="data_coleta" name="data_coleta" value="<?= htmlspecialchars($bolsa['data_coleta'], ENT_QUOTES, 'UTF-8') ?>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="validade">Validade</label>
+                                <input type="date" class="form-control" id="validade" name="validade" value="<?= htmlspecialchars($bolsa['validade'], ENT_QUOTES, 'UTF-8') ?>" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="volume_ml">Volume (ml)</label>
+                                <input type="number" class="form-control" id="volume_ml" name="volume_ml" value="<?= htmlspecialchars($bolsa['volume_ml'], ENT_QUOTES, 'UTF-8') ?>" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="estado">Estado</label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="Disponível" <?= $bolsa['estado'] == 'Disponível' ? 'selected' : '' ?>>Disponível</option>
+                                    <option value="Utilizada" <?= $bolsa['estado'] == 'Utilizada' ? 'selected' : '' ?>>Utilizada</option>
+                                    <option value="Vencida" <?= $bolsa['estado'] == 'Vencida' ? 'selected' : '' ?>>Vencida</option>
+                                    <option value="Reservada" <?= $bolsa['estado'] == 'Reservada' ? 'selected' : '' ?>>Reservada</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" name="id" value="<?= htmlspecialchars($bolsa['id'], ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="table" value="bolsas_sangue">
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-end gap-2 border-0 bg-white">
+                        <a href="bolsas_sangue.php" class="btn btn-light border">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Atualizar</button>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label for="volume_ml" class="form-label">Volume (ml)</label>
-            <input type="number" class="form-control" id="volume_ml" name="volume_ml" value="<?= htmlspecialchars($bolsas['volume_ml'], ENT_QUOTES, 'UTF-8') ?>" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="estado" class="form-label">Estado</label>
-            <select class="form-select" id="estado" name="estado" required>
-                <option value="Disponível" <?= $bolsas['estado'] == 'Disponível' ? 'selected' : '' ?>>Disponível</option>
-                <option value="Utilizada" <?= $bolsas['estado'] == 'Utilizada' ? 'selected' : '' ?>>Utilizada</option>
-                <option value="Vencida" <?= $bolsas['estado'] == 'Vencida' ? 'selected' : '' ?>>Vencida</option>
-                <option value="Reservada" <?= $bolsas['estado'] == 'Reservada' ? 'selected' : '' ?>>Reservada</option>
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-        <a href="bolsas_sangue.php" class="btn btn-secondary">Cancelar</a>
-    </form>
+    </div>
 </div>
 
 <?php include 'partials/footer.php'; ?>

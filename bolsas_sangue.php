@@ -1,26 +1,216 @@
 <?php
-    include 'partials/header.php';
+include 'partials/header.php';
 
-    $pageTitle = "Bolsas de Sangues";
-    $breadcrumbItems = [
-        ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
-        ['title' => 'Inventário', 'url' => '#', 'active' => true]
-    ];
+$pageTitle = "Bolsas de Sangue";
+$breadcrumbItems = [
+    ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
+    ['title' => 'Inventário', 'url' => '#', 'active' => true]
+];
+
+$host = "localhost";
+$usuario = "root";
+$senha = "";
+$banco = "hemovida";
+$conexao = mysqli_connect($host, $usuario, $senha, $banco);
+
+if (!$conexao) {
+    die("Erro ao conectar ao banco de dados: " . mysqli_connect_error());
+}
+
+// Get statistics data
+$queryStats = "SELECT 
+    COUNT(*) as total_bolsas,
+    SUM(CASE WHEN estado = 'Disponível' THEN 1 ELSE 0 END) as disponiveis,
+    SUM(CASE WHEN estado = 'Utilizada' THEN 1 ELSE 0 END) as utilizadas,
+    SUM(CASE WHEN estado = 'Vencida' THEN 1 ELSE 0 END) as vencidas,
+    SUM(CASE WHEN estado = 'Reservada' THEN 1 ELSE 0 END) as reservadas
+    FROM bolsas_sangue";
+
+$resultStats = mysqli_query($conexao, $queryStats);
+$stats = mysqli_fetch_assoc($resultStats);
+
+// Get blood type distribution
+$queryTypes = "SELECT 
+    d.tipo_sanguineo, 
+    COUNT(*) as total,
+    SUM(CASE WHEN b.estado = 'Disponível' THEN 1 ELSE 0 END) as disponiveis
+    FROM bolsas_sangue b
+    JOIN dadores d ON b.id_dador = d.id
+    GROUP BY d.tipo_sanguineo
+    ORDER BY total DESC";
+
+$resultTypes = mysqli_query($conexao, $queryTypes);
+$bloodTypes = [];
+while ($row = mysqli_fetch_assoc($resultTypes)) {
+    $bloodTypes[] = $row;
+}
 ?>
 
 <div class="container p-4">
-    <?php include 'partials/page-header.php'; ?>
-</div>
-
-<div class="d-flex justify-content-around">
-    <div>
-        <a href="bolsas_sangue-criar.php" class="btn text-red" style="background-color: #202d3b;">
-            <i class="fa-solid fa-plus" style="color: #ff0000;"></i> Adicionar Bolsa
-        </a>
+    <?php include 'partials/page-header.php'; ?> 
+    
+    <div class="d-flex justify-content-end mb-4">
+    <a href="bolsas_sangue-criar.php" class="btn text-white" style="background-color: #202d3b;">
+        <i class="fa-solid fa-plus"></i> Adicionar Bolsa
+    </a>
     </div>
-</div>
 
-<div class="container py-2 mt-4 mb-4">
+    
+    <!-- Seção de Estatísticas -->
+    <div class="container-fluid mb-4 px-0">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0 pt-3 px-4">
+                <h5 class="mb-0 font-weight-bold text-danger">
+                    <i class="fas fa-chart-pie me-2"></i>Estatísticas de Bolsas de Sangue
+                </h5>
+                <ul class="nav nav-tabs border-0 mt-3" id="statsTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active px-3 py-2 border-0 font-weight-bold text-danger" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">
+                            <i class="fas fa-eye me-1"></i> Visão Geral
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 border-0 font-weight-bold text-muted" id="bloodtypes-tab" data-bs-toggle="tab" href="#bloodtypes" role="tab">
+                            <i class="fas fa-heartbeat me-1"></i> Tipos Sanguíneos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="tab-content" id="statsTabContent">
+                    <!-- Tab 1: Visão Geral -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <div class="row no-gutters">
+                            <!-- Total Geral -->
+                            <div class="col-lg-3 col-md-6 border-right">
+                                <div class="p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-danger bg-opacity-10 rounded-circle p-3 mr-3">
+                                            <i class="fas fa-tint text-danger fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 small text-muted">TOTAL</p>
+                                            <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= number_format($stats['total_bolsas']) ?></h3>
+                                            <span class="badge bg-danger bg-opacity-10 text-danger small">Bolsas</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Disponíveis -->
+                            <div class="col-lg-3 col-md-6 border-right">
+                                <div class="p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-success bg-opacity-10 rounded-circle p-3 mr-3">
+                                            <i class="fas fa-check-circle text-success fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 small text-muted">DISPONÍVEIS</p>
+                                            <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= number_format($stats['disponiveis']) ?></h3>
+                                            <span class="badge bg-success bg-opacity-10 text-success small"><?= round(($stats['disponiveis']/$stats['total_bolsas'])*100, 1) ?>%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Utilizadas -->
+                            <div class="col-lg-3 col-md-6 border-right">
+                                <div class="p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary bg-opacity-10 rounded-circle p-3 mr-3">
+                                            <i class="fas fa-check-double text-secondary fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 small text-muted">UTILIZADAS</p>
+                                            <h3 class="mb-0 fs-4 font-weight-bold mx-2"><?= number_format($stats['utilizadas']) ?></h3>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary small"><?= round(($stats['utilizadas']/$stats['total_bolsas'])*100, 1) ?>%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Vencidas/Reservadas -->
+                            <div class="col-lg-3 col-md-6">
+                                <div class="p-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 rounded-circle p-3 mr-3">
+                                            <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 small text-muted">VENCIDAS/RESERVADAS</p>
+                                            <h3 class="mb-0 fs-4 mx-2 font-weight-bold">
+                                                <?= number_format($stats['vencidas'] + $stats['reservadas']) ?>
+                                            </h3>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning small">
+                                                <?= round((($stats['vencidas'] + $stats['reservadas'])/$stats['total_bolsas'])*100, 1) ?>%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab 2: Tipos Sanguíneos -->
+                    <div class="tab-pane fade" id="bloodtypes" role="tabpanel">
+                        <div class="p-4">
+                            <h6 class="font-weight-bold text-muted mb-3">Distribuição por Tipo Sanguíneo</h6>
+                            <div class="row">
+                                <?php foreach ($bloodTypes as $type): 
+                                    $percentage = ($type['total'] / $stats['total_bolsas']) * 100;
+                                    $availablePercentage = ($type['disponiveis'] / $type['total']) * 100;
+                                ?>
+                                <div class="col-md-6 col-lg-3 mb-4">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1">
+                                                    <?= htmlspecialchars($type['tipo_sanguineo'], ENT_QUOTES, 'UTF-8') ?>
+                                                </span>
+                                                <span class="font-weight-bold h5 mb-0"><?= $type['total'] ?></span>
+                                            </div>
+                                            <div class="progress bg-light mb-2" style="height: 8px;">
+                                                <div class="progress-bar bg-danger" role="progressbar" 
+                                                     style="width: <?= $percentage ?>%" 
+                                                     aria-valuenow="<?= $percentage ?>" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <small class="text-muted">Percentagem</small>
+                                                <small class="font-weight-bold text-danger">
+                                                    <?= round($percentage, 1) ?>%
+                                                </small>
+                                            </div>
+                                            <div class="progress bg-light" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: <?= $availablePercentage ?>%" 
+                                                     aria-valuenow="<?= $availablePercentage ?>" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1">
+                                                <small class="text-muted">Disponíveis</small>
+                                                <small class="font-weight-bold text-success">
+                                                    <?= $type['disponiveis'] ?> (<?= round($availablePercentage, 1) ?>%)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="text-end small text-muted mt-2">
+                                * Baseado em <?= number_format($stats['total_bolsas']) ?> bolsas registadas
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Filtro de Bolsas de Sangue -->
     <div class="accordion py-2" id="accordionFiltro">
         <div class="accordion-item">
@@ -49,7 +239,6 @@
                                                     <label class="form-check-label" for="' . $id . '">
                                                         ' . $tipo . '
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end">' . ($contagens['count' . str_replace(['+', '-'], ['Positivo', 'Negativo'], $tipo)] ?? 0) . '</span>
                                                 </div>';
                                             }
                                             ?>
@@ -70,7 +259,6 @@
                                                     <label class="form-check-label" for="' . $id . '">
                                                         ' . $estado . '
                                                     </label>
-                                                    <span class="badge bg-light text-muted float-end">' . ($contagens['count' . $estado] ?? 0) . '</span>
                                                 </div>';
                                             }
                                             ?>
@@ -95,141 +283,115 @@
     </div>
 
     <!-- Listagem das Bolsas de Sangue -->
-    <div class="accordion py-2">
-        <?php
-        $host = "localhost";  // ou o nome do seu servidor
-        $usuario = "root";  // seu nome de usuário
-        $senha = "";  // sua senha
-        $banco = "hemovida";  // o nome do seu banco de dados
+    <div class="table-responsive py-2">
+        <table class="table text-nowrap table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Tipo Sanguíneo</th>
+                    <th scope="col">Data de Coleta</th>
+                    <th scope="col">Volume (ml)</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <?php
+                $host = "localhost";
+                $usuario = "root";
+                $senha = "";
+                $banco = "hemovida";
 
-        // Crie a conexão
-        $conexao = mysqli_connect($host, $usuario, $senha, $banco);
+                $conexao = mysqli_connect($host, $usuario, $senha, $banco);
+                if (!$conexao) {
+                    die("Erro ao conectar ao banco de dados: " . mysqli_connect_error());
+                }
 
-        // Verifique se a conexão foi bem-sucedida
-        if (!$conexao) {
-            die("Erro ao conectar ao banco de dados: " . mysqli_connect_error());
-        }
+                // Obter os valores dos filtros
+                $tipos_sanguineos = $_GET['tipo_sanguineo'] ?? [];
+                $estados = $_GET['estado'] ?? [];
+                
+                // Construir a consulta SQL com base nos filtros
+                $query = "SELECT bolsas_sangue.id, bolsas_sangue.data_coleta, bolsas_sangue.volume_ml, bolsas_sangue.estado, dadores.tipo_sanguineo
+                          FROM bolsas_sangue
+                          JOIN dadores ON bolsas_sangue.id_dador = dadores.id
+                          WHERE 1=1";
+                
+                // Filtro: Tipo Sanguíneo
+                if (!empty($tipos_sanguineos)) {
+                    $tipos_sanguineos = array_map(function($valor) use ($conexao) {
+                        return mysqli_real_escape_string($conexao, $valor);
+                    }, $tipos_sanguineos);
+                    $query .= " AND dadores.tipo_sanguineo IN ('" . implode("','", $tipos_sanguineos) . "')";
+                }
+                
+                // Filtro: Estado
+                if (!empty($estados)) {
+                    $estados = array_map(function($valor) use ($conexao) {
+                        return mysqli_real_escape_string($conexao, $valor);
+                    }, $estados);
+                    $query .= " AND bolsas_sangue.estado IN ('" . implode("','", $estados) . "')";
+                }
+                
+                $resultado = mysqli_query($conexao, $query);
+                
+                if (mysqli_num_rows($resultado) > 0):
+                    while ($bolsa = mysqli_fetch_assoc($resultado)):
+                ?>
+                <tr>
+                    <th scope="row"><?= htmlspecialchars($bolsa['id'], ENT_QUOTES, 'UTF-8') ?></th>
+                    <td><?= htmlspecialchars($bolsa['tipo_sanguineo'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($bolsa['data_coleta'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($bolsa['volume_ml'], ENT_QUOTES, 'UTF-8') ?> ml</td>
+                  <td>
+                        <?php
+                            // Normalizar estado (tudo minúsculo, sem acento)
+                            $estadoBanco = strtolower(trim($bolsa['estado']));
 
-        // Obter os valores dos filtros
-        $tipos_sanguineos = $_GET['tipo_sanguineo'] ?? [];
-        $estados = $_GET['estado'] ?? [];
-        
-        // Construir a consulta SQL com base nos filtros
-        $query = "SELECT bolsas_sangue.id, bolsas_sangue.data_coleta, bolsas_sangue.volume_ml, bolsas_sangue.estado, dadores.tipo_sanguineo
-                  FROM bolsas_sangue
-                  JOIN dadores ON bolsas_sangue.id_dador = dadores.id
-                  WHERE 1=1";
-        
-        // Filtro: Tipo Sanguíneo
-        if (!empty($tipos_sanguineos)) {
-            // Garantir que $tipos_sanguineos seja um array
-            $tipos_sanguineos = (array)$tipos_sanguineos;
-        
-            // Escapar os valores para evitar SQL injection
-            $tipos_sanguineos = array_map(function($valor) use ($conexao) {
-                return mysqli_real_escape_string($conexao, $valor);
-            }, $tipos_sanguineos);
-        
-            $query .= " AND dadores.tipo_sanguineo IN ('" . implode("','", $tipos_sanguineos) . "')";
-        }
-        
-        // Filtro: Estado
-        if (!empty($estados)) {
-            // Garantir que $estados seja um array
-            $estados = (array)$estados;
-        
-            // Escapar os valores para evitar SQL injection
-            $estados = array_map(function($valor) use ($conexao) {
-                return mysqli_real_escape_string($conexao, $valor);
-            }, $estados);
-        
-            $query .= " AND bolsas_sangue.estado IN ('" . implode("','", $estados) . "')";
-        }
-        
-        // Executar a consulta
-        $resultado = mysqli_query($conexao, $query);
-        
-        if (mysqli_num_rows($resultado) > 0):
-            while ($bolsa = mysqli_fetch_assoc($resultado)):
-        ?>
-        <!-- Exibir as bolsas de sangue -->
-        <div class="row">
-            <div class="col-sm-6 mb-3 mb-sm-0">
-                <h5 class="m-2"></h5>
-                <div class="col">
-                    <div class="card p-3 shadow-sm">
-                        <div class="card-header d-flex justify-content-between">
-                            <h5 class="card-title">Data coleta: <?= htmlspecialchars($bolsa['data_coleta'], ENT_QUOTES, 'UTF-8') ?></h5>
-                            <div class="d-flex align-items-center justify-content-end gap-2">
-                                <a href="bolsas_sangue-editar.php" class="lh-1 text-decoration-none" style="color: #202d3b;">
-                                    <i class="fa-regular fa-pen-to-square" style="color: #901818;"></i>
-                                </a>
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalBolsas" data-bolsas-sangue-id="<?= htmlspecialchars($bolsa['id'], ENT_QUOTES, 'UTF-8') ?>">
-    <i class="fa-regular fa-trash-can" style="color: #901818;"></i>
-</a>
-                            </div>
+                            // Mapeamento de estado → cor da badge
+                            $classesBadge = [
+                                'disponivel' => 'bg-success text-white',
+                                'utilizada' => 'bg-secondary text-white',
+                                'vencida' => 'bg-danger text-white',
+                                'reservada' => 'bg-warning text-dark',
+                            ];
+
+                            $classe = $classesBadge[$estadoBanco] ?? 'bg-light text-dark';
+                            $estadoLabel = ucfirst($estadoBanco);
+                        ?>
+                        <span class="badge <?= $classe ?>">
+                            <?= htmlspecialchars($estadoLabel, ENT_QUOTES, 'UTF-8') ?>
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="bolsas_sangue-editar.php?id=<?= htmlspecialchars($bolsa['id'], ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none" style="color: #202d3b;">
+                                <i class="fa-solid fa-file-pen"></i>
+                            </a>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalBolsa" data-bolsa-id="<?= htmlspecialchars($bolsa['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                <i class="fa-solid fa-trash-can text-danger"></i>
+                            </a>
                         </div>
-                        <div class="card-header d-flex justify-content-between">
-                            <p class="card-text flex-grow-1">
-                                <strong>ID:</strong> <?= htmlspecialchars($bolsa['id'], ENT_QUOTES, 'UTF-8') ?><br>
-                                <strong>Tipo Sanguíneo:</strong> <?= htmlspecialchars($bolsa['tipo_sanguineo'], ENT_QUOTES, 'UTF-8') ?><br>
-                                <strong>Data de Coleta:</strong> <?= htmlspecialchars($bolsa['data_coleta'], ENT_QUOTES, 'UTF-8') ?><br>
-                                <strong>Volume:</strong> <?= htmlspecialchars($bolsa['volume_ml'], ENT_QUOTES, 'UTF-8') ?> ml
-                            </p>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <p>
-                                    <?php
-                                    if (isset($bolsa) && is_array($bolsa) && isset($bolsa['estado'])) {
-                                        $estado = $bolsa['estado'];
-                                    } else {
-                                        $estado = 'Indefinido'; // Define um valor padrão caso a chave não exista
-                                    }
-        
-                                    switch ($estado) {
-                                        case "Disponível":
-                                            echo '<span class="float-right badge bg-success">';
-                                            echo htmlspecialchars($estado, ENT_QUOTES, 'UTF-8');
-                                            echo '</span>';
-                                            break;
-                                        case "Utilizada":
-                                            echo '<span class="float-right badge bg-warning">';
-                                            echo htmlspecialchars($estado, ENT_QUOTES, 'UTF-8');
-                                            echo '</span>';
-                                            break;
-                                        case "Vencida":
-                                            echo '<span class="float-right badge bg-danger">';
-                                            echo htmlspecialchars($estado, ENT_QUOTES, 'UTF-8');
-                                            echo '</span>';
-                                            break;
-                                        case "Reservada":
-                                        default:
-                                            echo '<span class="float-right badge" style="background-color: #202d3b;">';
-                                            echo htmlspecialchars($estado, ENT_QUOTES, 'UTF-8');
-                                            echo '</span>';
-                                            break;
-                                    }
-                                    ?>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php
-            endwhile;
-        else:
-            echo "Não há bolsas de sangue disponíveis.";
-        endif;
-        ?>
-        <!-- Modal: Remover bolsas -->
-        <div class="modal fade" id="deleteModalBolsas" tabindex="-1" aria-labelledby="deleteModalLabelBolsas" aria-hidden="true">
+                    </td>
+                </tr>
+                <?php
+                    endwhile;
+                else:
+                    echo '<tr><td colspan="6" class="text-center">Não há bolsas de sangue disponíveis.</td></tr>';
+                endif;
+                mysqli_close($conexao);
+                ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Remover Bolsa -->
+<div class="modal fade" id="deleteModalBolsa" tabindex="-1" aria-labelledby="deleteModalLabelBolsa" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabelBolsas">Confirmar Exclusão</h5>
+                <h5 class="modal-title" id="deleteModalLabelBolsa">Confirmar Exclusão</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
@@ -237,7 +399,7 @@
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
-                <a id="deleteConfirmButtonBolsas" href="" class="btn btn-danger">Remover</a>
+                <a id="deleteConfirmButtonBolsa" href="" class="btn btn-danger">Remover</a>
             </div>
         </div>
     </div>
@@ -245,15 +407,14 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    var deleteModal = document.getElementById("deleteModalBolsas");
+    var deleteModal = document.getElementById("deleteModalBolsa");
     deleteModal.addEventListener("show.bs.modal", function(event) {
         var button = event.relatedTarget; 
-        // Obtenha o ID da bolsa a partir do atributo data-bolsas-sangue-id
-        var bolsaId = button.getAttribute("data-bolsas-sangue-id"); 
-        var confirmButton = document.getElementById("deleteConfirmButtonBolsas");
-        // Configure o link para o script de deleção, passando a tabela e o ID da bolsa
-        confirmButton.href = "includes/destroy.php?table=bolsas_sangue&id=" + bolsaId;
+        var bolsaId = button.getAttribute("data-bolsa-id"); 
+        var confirmButton = document.getElementById("deleteConfirmButtonBolsa");
+        confirmButton.href = "includes/bolsa_remover.php?id=" + bolsaId;
     });
 });
 </script>
-        <?php include 'partials/footer.php'; ?>
+
+<?php include 'partials/footer.php'; ?>
