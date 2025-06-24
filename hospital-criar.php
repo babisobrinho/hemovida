@@ -11,46 +11,139 @@
 
 ?>
 
-    <div class="container p-4">
-        <?php include 'partials/page-header.php'; ?>
+<div class="container p-4" style="background-color: #f5f5f5; min-height: 100vh;">
+    <?php include 'partials/page-header.php'; ?>
 
-        <div class="container d-flex justify-content-center align-items-start">
-            <div class="card shadow p-4" style="width: 40rem;">
-                <form method="POST" action="includes/store.php">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="nome" class="form-label">Nome do Hospital</label>
-                            <input type="text" class="form-control" id="nome" name="nome" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="endereco" class="form-label">Endereço</label>
-                            <input type="text" class="form-control" id="endereco" name="endereco" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="telefone" class="form-label">Telefone</label>
-                            <input type="text" class="form-control" id="telefone" name="telefone" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="nome_responsavel" class="form-label">Nome do Responsável</label>
-                            <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="estado" name="estado" value="1" checked>
-                            <label class="form-check-label" for="estado">Ativo</label>
-                        </div>
-                        <input type="hidden" name="table" value="hospitais">
-                        <div class="d-flex align-items-center justify-content-end gap-2">
-                            <a href="hospitais.php" class="btn btn-light border">Voltar</a>
-                            <button type="submit" class="btn btn-success">Adicionar</button>
+    <div class="container d-flex justify-content-center align-items-start">
+        <div class="card border-0 shadow-lg" style="width: 42rem; border-radius: 20px; background-color: #ffffff;">
+            <!-- Header do Formulário -->
+            <div class="card-header border-0 text-center p-4" style="background-color: #f8f9fa; border-radius: 20px 20px 0 0; border-bottom: 1px solid #dee2e6;">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle" style="width: 60px; height: 60px; background-color: #202d3b;">
+                    <i class="fa-regular fa-hospital text-white" style="font-size: 1.5rem;"></i>
+                </div>
+                <h4 class="text-dark mb-1">Adicionar Hospital</h4>
+                <p class="text-muted mb-0">Preencha os dados do novo hospital parceiro</p>
+            </div>
+            
+            <form method="POST" action="includes/store.php">
+                <div class="card-body p-4">
+                    <!-- Nome do Hospital -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3" style="background: linear-gradient(135deg, #202d3b 0%, #2c3e50 100%);">
+                                <i class="fa-regular fa-hospital text-white"></i>
+                            </span>
+                            <input type="text" class="form-control py-3 px-3 border-0 rounded-end-3" id="nome" name="nome" placeholder="Nome do hospital" required style="background-color: #f8f9fa; transition: all 0.3s ease;">
                         </div>
                     </div>
-                </form>
-            </div>
+                    
+                    <!-- Endereço -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3" style="background: linear-gradient(135deg, #202d3b 0%, #2c3e50 100%);">
+                                <i class="fa-solid fa-location-dot text-white"></i>
+                            </span>
+                            <input type="text" class="form-control py-3 px-3 border-0 rounded-end-3" id="endereco" name="endereco" placeholder="Endereço completo" required style="background-color: #f8f9fa; transition: all 0.3s ease;">
+                        </div>
+                    </div>
+                    
+                    <!-- Telefone e Email -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text border-0 rounded-start-3" style="background: linear-gradient(135deg, #202d3b 0%, #2c3e50 100%);">
+                                    <i class="fa-solid fa-phone text-white"></i>
+                                </span>
+                                <input type="text" class="form-control py-3 px-3 border-0 rounded-end-3" id="telefone" name="telefone" placeholder="(00) 0000-0000" required style="background-color: #f8f9fa; transition: all 0.3s ease;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text border-0 rounded-start-3" style="background: linear-gradient(135deg, #202d3b 0%, #2c3e50 100%);">
+                                    <i class="fa-solid fa-envelope text-white"></i>
+                                </span>
+                                <input type="email" class="form-control py-3 px-3 border-0 rounded-end-3" id="email" name="email" placeholder="hospital@exemplo.com" required style="background-color: #f8f9fa; transition: all 0.3s ease;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Responsável -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text border-0 rounded-start-3" style="background: linear-gradient(135deg, #202d3b 0%, #2c3e50 100%);">
+                                <i class="fa-solid fa-user-tie text-white"></i>
+                            </span>
+                            <input type="text" class="form-control py-3 px-3 border-0 rounded-end-3" id="nome_responsavel" name="nome_responsavel" placeholder="Nome do responsável" required style="background-color: #f8f9fa; transition: all 0.3s ease;">
+                        </div>
+                    </div>
+                    
+                    <!-- Estado -->
+                    <div class="mb-4">
+                        <div class="form-check p-3 rounded-3" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border: 2px solid #dee2e6;">
+                            <input class="form-check-input" type="checkbox" id="estado" name="estado" value="1" checked style="transform: scale(1.3); accent-color: #198754;">
+                            <label class="form-check-label text-dark fw-medium ms-2" for="estado">
+                                <i class="fa-solid fa-check-circle text-success me-2"></i>Hospital ativo no sistema
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="table" value="hospitais">
+                    
+                    <!-- Botões -->
+                    <div class="d-flex gap-3">
+                        <a href="hospitais.php" class="btn btn-light border flex-fill py-3 rounded-3 fw-medium" style="transition: all 0.3s ease;">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+                        </a>
+                        <button type="submit" class="btn text-white flex-fill py-3 rounded-3 fw-medium" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%); transition: all 0.3s ease;">
+                            <i class="fa-solid fa-plus me-2"></i>Adicionar Hospital
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <?php include 'partials/footer.php'; ?>
+<style>
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(32, 45, 59, 0.1);
+    background-color: white !important;
+    transform: translateY(-2px);
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.form-check:hover {
+    transform: translateX(5px);
+    border-color: #198754 !important;
+}
+
+.input-group:hover .form-control {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(32, 45, 59, 0.15) !important;
+}
+
+/* Animação para os ícones */
+.input-group-text i {
+    transition: all 0.3s ease;
+}
+
+.input-group:hover .input-group-text i {
+    transform: scale(1.1);
+}
+</style>
+
+<?php include 'partials/footer.php'; ?>
+
