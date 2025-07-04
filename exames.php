@@ -21,6 +21,23 @@
     if ($conn->connect_error) {
         die("Falha na conexão: " . $conn->connect_error);
     }
+
+
+    if (isset($_POST['delete_id'])) {
+        $delete_id = $_POST['delete_id'];
+        $delete_sql = "DELETE FROM exames WHERE id = ?";
+        $stmt = $conn->prepare($delete_sql);
+        $stmt->bind_param("i", $delete_id);
+        if ($stmt->execute()) {
+            echo "<script>window.location.href='exames.php';</script>";
+            exit;
+        }
+        $stmt->close();
+    }
+    
+    $sql = "SELECT * FROM exames";
+    $result = $conn->query($sql);
+
 ?> 
 
 

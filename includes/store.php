@@ -1,6 +1,10 @@
 <?php
 
     require_once __DIR__ . '/db_connection.php';
+    var_dump($_POST);
+exit;
+ 
+
 
     if (!$pdo) {
         die("Erro: Não foi possível conectar à base de dados.");
@@ -58,10 +62,27 @@
 
         case "exames":
 
-            // Adicionar campos
-            $location = "../exames.php";
-
+            if (isset($_POST['id_bolsa'])) { $data['id_bolsa'] = $_POST['id_bolsa']; }
+            if (isset($_POST['data'])) { $data['data'] = $_POST['data']; }
+            if (isset($_POST['hemoglobina'])) { $data['hemoglobina'] = $_POST['hemoglobina']; }
+            if (isset($_POST['hepatite'])) { $data['hepatite'] = $_POST['hepatite']; }
+            if (isset($_POST['hiv'])) { $data['hiv'] = $_POST['hiv']; }
+            if (isset($_POST['chagas'])) { $data['chagas'] = $_POST['chagas']; }
+            if (isset($_POST['sifilis'])) { $data['sifilis'] = $_POST['sifilis']; }
+            if (isset($_POST['resultado'])) { $data['resultado'] = $_POST['resultado']; }
+        
+            if (!isset($data['id_bolsa']) || !isset($data['data']) || !isset($data['hemoglobina']) || !isset($data['resultado'])) {
+                die("Erro: Todos os campos obrigatórios devem ser preenchidos.");
+            }
+        
+            if ($data['data'] > date("d-m-Y")) {
+                die("Erro: A data do exame não pode estar no futuro.");
+            }
+        
+            $location = "../exames.php?dataSelecionada=" . $data['data'];
+            
             break;
+        
 
         case "hospitais":
 
