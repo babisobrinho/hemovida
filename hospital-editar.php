@@ -14,7 +14,7 @@
 
 ?>
 
-<div class="container p-4" style="background-color: #f5f5f5; min-height: 100vh;">
+<div class="container p-4">
     <?php include 'partials/page-header.php'; ?>
     
     <div class="container d-flex justify-content-center align-items-start">

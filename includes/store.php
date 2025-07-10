@@ -1,126 +1,135 @@
 <?php
+require_once __DIR__ . '/db_connection.php';
 
-    require_once __DIR__ . '/db_connection.php';
+if (!$pdo) {
+    die("Erro: Não foi possível conectar à base de dados.");
+}
 
-    if (!$pdo) {
-        die("Erro: Não foi possível conectar à base de dados.");
-    }
+$table = $_POST['table'] ?? '';
 
-    $table = $_POST['table'];
+if (!$table) {
+    die("Erro: Nome da tabela inválido.");
+}
 
-    if (!$table) {
-        die("Erro: Nome da tabela inválido.");
-    }
+$data = [];
+$location = '';
 
-    $data = [];
-
-    switch ($table) {
-        case "bolsas_sangue":
-
-            // Adicionar campos
-            $location = "../inventario.php";
-
-            break;
+switch ($table) {
+    case "bolsas_sangue":
+        $location = "../inventario.php";
+        break;
         
-        case "dadores":
-            if (isset($_POST['nome'])) { $nome = $_POST['nome']; $data['nome'] = $nome; }
-            if (isset($_POST['email'])) { $email = $_POST['email']; $data['email'] = $email; }
-            if (isset($_POST['n_utente'])) { $n_utente = $_POST['n_utente']; $data['n_utente'] = $n_utente; }
-            if (isset($_POST['data_nascimento'])) { $data_nascimento = $_POST['data_nascimento']; $data['data_nascimento'] = $data_nascimento; }
-            if (isset($_POST['tipo_sanguineo'])) { $tipo_sanguineo = $_POST['tipo_sanguineo']; $data['tipo_sanguineo'] = $tipo_sanguineo; }
-            if (isset($_POST['peso'])) { $peso = $_POST['peso']; $data['peso'] = $peso; }
-            if (isset($_POST['sexo'])) { $sexo = $_POST['sexo']; $data['sexo'] = $sexo; }
-            if (isset($_POST['estado'])) { $estado = $_POST['estado']; $data['estado'] = $estado; }
-            if (isset($_POST['data_inscricao'])) { $data_inscricao = $_POST['data_inscricao']; $data['data_inscricao'] = $data_inscricao; }
+    case "dadores":
+        if (isset($_POST['nome'])) { $data['nome'] = $_POST['nome']; }
+        if (isset($_POST['email'])) { $data['email'] = $_POST['email']; }
+        if (isset($_POST['n_utente'])) { $data['n_utente'] = $_POST['n_utente']; }
+        if (isset($_POST['data_nascimento'])) { $data['data_nascimento'] = $_POST['data_nascimento']; }
+        if (isset($_POST['tipo_sanguineo'])) { $data['tipo_sanguineo'] = $_POST['tipo_sanguineo']; }
+        if (isset($_POST['peso'])) { $data['peso'] = $_POST['peso']; }
+        if (isset($_POST['sexo'])) { $data['sexo'] = $_POST['sexo']; }
+        if (isset($_POST['estado'])) { $data['estado'] = $_POST['estado']; }
+        if (isset($_POST['data_inscricao'])) { $data['data_inscricao'] = $_POST['data_inscricao']; }
+        $location = "../dadores.php";
+        break;
 
-            $location = "../dadores.php";
-
-            break;
-
-        case "doacoes":
-
-            if (isset($_POST['dador'])) { $data['id_dador'] = $_POST['dador']; }
-            if (isset($_POST['data'])) { $data['data'] = $_POST['data']; }
-            if (isset($_POST['hora'])) { $data['hora'] = $_POST['hora']; }
-            if (isset($_POST['estado'])) { $data['estado'] = $_POST['estado']; }
-
-            if (!isset($data['id_dador']) || !isset($data['data']) || !isset($data['hora']) || !isset($data['estado'])) {
-                die("Erro: Todos os campos são obrigatórios.");
+    case "doacoes":
+        // Validação dos campos obrigatórios
+        $requiredFields = ['dador', 'data', 'hora', 'estado'];
+        foreach ($requiredFields as $field) {
+            if (!isset($_POST[$field])) {
+                die("Erro: O campo '$field' é obrigatório.");
             }
-
-            if ($data['data'] < date("Y-m-d")) {
-                die("Erro: A data não pode ser no passado.");
-            }
-
-            $location = "../doacoes.php?dataSelecionada=" . $data['data'];
-
-            break;
-
-        case "exames":
-
-            // Adicionar campos
-            $location = "../exames.php";
-
-            break;
-
-        case "hospitais":
-
-            if (isset($_POST['nome'])) { $data['nome'] = $_POST['nome']; }
-            if (isset($_POST['endereco'])) { $data['endereco'] = $_POST['endereco']; }
-            if (isset($_POST['telefone'])) { $data['telefone'] = $_POST['telefone']; }
-            if (isset($_POST['email'])) { $data['email'] = $_POST['email']; }
-            if (isset($_POST['nome_responsavel'])) { $data['nome_responsavel'] = $_POST['nome_responsavel']; }
-            
-            if (isset($_POST['estado'])) { 
-                $data['estado'] = 1; 
-            } else { 
-                $data['estado'] = 0;
-            }
-
-            $location = "../hospitais.php";
-
-            break;
-
-        case "transfucoes":
-
-            // Adicionar campos
-            $location = "../transfusoes.php";
-
-            break;
-    }
-
-    function validateDate($date, $format = 'Y-m-d') {
-        $d = DateTime::createFromFormat($format, $date);
-        return $d && $d->format($format) === $date;
-    }
-
-    $dateFields = ['data_nascimento', 'data_inscricao'];
-    foreach ($data as $field => $value) {
-        if (in_array($field, $dateFields) && !validateDate($value)) {
-            die("Erro: Data inválida.");
         }
-    }
 
-    $columns = implode(", ", array_keys($data));
-    $placeholders = ":" . implode(", :", array_keys($data));
+        // Preparar dados
+        $data = [
+            'id_dador' => (int)$_POST['dador'],
+            'data' => $_POST['data'],
+            'hora' => $_POST['hora'],
+            'estado' => match($_POST['estado']) {
+                'concluido' => 'Concluído',
+                'cancelado' => 'Cancelado',
+                'em_atendimento' => 'Em Atendimento',
+                default => 'Agendado'
+            }
+        ];
 
-    $query_create = "INSERT INTO $table ($columns) VALUES ($placeholders)";
-    $stmt = $pdo->prepare($query_create);
-
-    foreach ($data as $field => $value) {
-        if (is_numeric($value)) {
-            $stmt->bindValue(":$field", (int) $value, PDO::PARAM_INT);
-        } else {
-            $stmt->bindValue(":$field", $value, PDO::PARAM_STR);
+        // Validação da data
+        if ($data['data'] < date("Y-m-d")) {
+            die("Erro: A data não pode ser no passado.");
         }
-    }
 
-    try {
-        $stmt->execute();
-        header("Location: " . $location);
+        $location = "../doacoes.php?dataSelecionada=" . $data['data'];
+        break;
+
+    case "exames":
+        $location = "../exames.php";
+        break;
+
+    case "hospitais":
+        if (isset($_POST['nome'])) { $data['nome'] = $_POST['nome']; }
+        if (isset($_POST['endereco'])) { $data['endereco'] = $_POST['endereco']; }
+        if (isset($_POST['telefone'])) { $data['telefone'] = $_POST['telefone']; }
+        if (isset($_POST['email'])) { $data['email'] = $_POST['email']; }
+        if (isset($_POST['nome_responsavel'])) { $data['nome_responsavel'] = $_POST['nome_responsavel']; }
+        $data['estado'] = isset($_POST['estado']) ? 1 : 0;
+        $location = "../hospitais.php";
+        break;
+
+    case "transfusoes":
+        $location = "../transfusoes.php";
+        break;
+
+    default:
+        die("Erro: Tabela inválida.");
+}
+
+// Validação de campos de data
+function validateDate($date, $format = 'Y-m-d') {
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+}
+
+$dateFields = ['data_nascimento', 'data_inscricao'];
+foreach ($data as $field => $value) {
+    if (in_array($field, $dateFields) && !validateDate($value)) {
+        die("Erro: Data inválida para o campo $field.");
+    }
+}
+
+// Preparar e executar a query
+$columns = implode(", ", array_keys($data));
+$placeholders = ":" . implode(", :", array_keys($data));
+$query = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+
+try {
+    $stmt = $pdo->prepare($query);
+    
+    foreach ($data as $field => $value) {
+        $stmt->bindValue(":$field", $value, is_numeric($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    
+    if ($stmt->execute()) {
+        // Atualização manual das campanhas (substitui a trigger)
+        if ($table === "doacoes") {
+            try {
+                $updateQuery = "UPDATE campanhas c SET c.progresso = (
+                    SELECT (COUNT(d.id)/c.meta)*100 
+                    FROM doacoes d 
+                    WHERE d.id_campanha = c.id
+                    AND d.data BETWEEN c.data_inicio AND c.data_fim
+                ) WHERE c.id = (SELECT id_campanha FROM doacoes WHERE id = ?)";
+                
+                $updateStmt = $pdo->prepare($updateQuery);
+                $updateStmt->execute([$pdo->lastInsertId()]);
+            } catch (PDOException $e) {
+                error_log("Erro ao atualizar campanhas: " . $e->getMessage());
+            }
+        }
+        
+        header("Location: $location");
         exit;
-    } catch (PDOException $e) {
-        die("Erro ao criar registo: " . $e->getMessage());
     }
-
-?>
+} catch (PDOException $e) {
+    die("Erro ao criar registo: " . $e->getMessage());
+}
