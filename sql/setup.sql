@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Tempo de geração: 05-Fev-2025 às 16:21
--- Versão do servidor: 10.4.28-MariaDB
--- versão do PHP: 8.2.4
+-- Host: localhost:3306
+-- Generation Time: Jul 10, 2025 at 03:31 PM
+-- Server version: 8.0.30
+-- PHP Version: 8.2.0
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,231 +18,770 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Banco de dados: `hemovida_db`
+-- Database: `hemog`
 --
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `atualizar_progresso_campanhas` ()   BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE campanha_id INT;
+    DECLARE data_inicio_c DATE;
+    DECLARE data_fim_c DATE;
+    DECLARE tipos_sanguineos TEXT;
+    
+    -- Cursor para todas as campanhas (ativas e finalizadas)
+    DECLARE cur CURSOR FOR 
+        SELECT c.id, c.data_inicio, c.data_fim, 
+               GROUP_CONCAT(DISTINCT cts.tipo_sanguineo) as tipos
+        FROM campanhas c
+        LEFT JOIN campanhas_tipos_sanguineos cts ON c.id = cts.id_campanha
+        GROUP BY c.id;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    OPEN cur;
+    
+    read_loop: LOOP
+        FETCH cur INTO campanha_id, data_inicio_c, data_fim_c, tipos_sanguineos;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Contar doações que atendem aos critérios da campanha
+        SET @query = CONCAT('
+            UPDATE campanhas c
+            SET c.arrecadado = (
+                SELECT COUNT(*) 
+                FROM doacoes d
+                JOIN dadores doador ON d.id_dador = doador.id
+                WHERE d.data BETWEEN ''', data_inicio_c, ''' AND ''', data_fim_c, '''
+                AND d.estado = ''concluido''
+                AND doador.estado = 1
+        ');
+        
+        -- Se houver tipos sanguíneos específicos, adicionar ao WHERE
+        IF tipos_sanguineos IS NOT NULL THEN
+            SET @query = CONCAT(@query, ' AND doador.tipo_sanguineo IN (''', 
+                               REPLACE(tipos_sanguineos, ',', ''','''), ''')');
+        END IF;
+        
+        SET @query = CONCAT(@query, ')
+            WHERE c.id = ', campanha_id);
+        
+        PREPARE stmt FROM @query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END LOOP;
+    
+    CLOSE cur;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `bolsas_sangue`
+-- Table structure for table `bolsas_sangue`
 --
 
 CREATE TABLE `bolsas_sangue` (
-  `id` int(11) NOT NULL,
-  `id_dador` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `id_dador` int NOT NULL,
   `volume_ml` double NOT NULL,
   `data_coleta` date NOT NULL,
   `validade` date NOT NULL,
-  `estado` enum('disponivel','reservada','utilizada','vencida') NOT NULL
+  `estado` enum('disponivel','reservada','utilizada','vencida') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `bolsas_sangue`
+-- Dumping data for table `bolsas_sangue`
 --
 
-INSERT INTO `bolsas_sangue` (`id`, `id_dador`, `volume_ml`, `data_coleta`, `validade`, `estado`) VALUES
-(1, 1, 450, '2018-06-15', '2018-09-13', 'utilizada'),
-(2, 1, 470, '2020-09-22', '2020-12-21', 'vencida'),
-(3, 8, 460, '2017-03-10', '2017-06-08', 'utilizada'),
-(4, 8, 450, '2019-12-05', '2020-03-04', 'vencida'),
-(5, 9, 480, '2016-07-28', '2016-10-26', 'utilizada'),
-(6, 9, 470, '2021-04-18', '2021-07-17', 'utilizada'),
-(7, 10, 455, '2015-11-30', '2016-02-28', 'vencida'),
-(8, 10, 460, '2023-02-14', '2025-05-15', 'disponivel'),
-(9, 11, 470, '2022-08-07', '2022-11-06', 'utilizada'),
-(10, 12, 450, '2019-05-21', '2019-08-19', 'cencida');
+INSERT INTO `bolsas_sangue` (`id`, `id_dador`, `volume_ml`, `data_coleta`, `validade`, `estado`, `criado_em`, `atualizado_em`) VALUES
+(1, 1, 450, '2025-07-01', '2025-08-12', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(2, 2, 470, '2025-07-01', '2025-08-12', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(3, 3, 460, '2025-07-02', '2025-08-13', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(4, 4, 480, '2025-07-02', '2025-08-13', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(5, 5, 450, '2025-07-03', '2025-08-14', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(6, 6, 455, '2025-07-03', '2025-08-14', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(7, 7, 470, '2025-07-04', '2025-08-15', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(8, 8, 460, '2025-07-04', '2025-08-15', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(9, 9, 450, '2025-07-05', '2025-08-16', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(10, 10, 480, '2025-07-05', '2025-08-16', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(11, 11, 470, '2025-07-06', '2025-08-17', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(12, 12, 460, '2025-07-06', '2025-08-17', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(13, 13, 450, '2025-07-07', '2025-08-18', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(14, 14, 455, '2025-07-07', '2025-08-18', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(15, 15, 470, '2025-07-08', '2025-08-19', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(16, 16, 460, '2025-07-08', '2025-08-19', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(17, 17, 450, '2025-07-09', '2025-08-20', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(18, 18, 480, '2025-07-09', '2025-08-20', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(19, 19, 470, '2025-07-10', '2025-08-21', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(20, 20, 460, '2025-07-10', '2025-08-21', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(21, 21, 450, '2025-07-11', '2025-08-22', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(22, 22, 455, '2025-07-11', '2025-08-22', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(23, 23, 470, '2025-07-12', '2025-08-23', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(24, 24, 460, '2025-07-12', '2025-08-23', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(25, 25, 450, '2025-07-13', '2025-08-24', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(26, 26, 480, '2025-07-13', '2025-08-24', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(27, 27, 470, '2025-07-14', '2025-08-25', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(28, 28, 460, '2025-07-14', '2025-08-25', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(29, 29, 450, '2025-07-15', '2025-08-26', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(30, 30, 455, '2025-07-15', '2025-08-26', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(31, 31, 470, '2025-07-16', '2025-08-27', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(32, 32, 460, '2025-07-16', '2025-08-27', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(33, 33, 450, '2025-07-17', '2025-08-28', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(34, 34, 480, '2025-07-17', '2025-08-28', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(35, 35, 470, '2025-07-18', '2025-08-29', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(36, 36, 460, '2025-07-18', '2025-08-29', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(37, 37, 450, '2025-07-19', '2025-08-30', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(38, 38, 455, '2025-07-19', '2025-08-30', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(39, 39, 470, '2025-07-20', '2025-08-31', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(40, 40, 460, '2025-07-20', '2025-08-31', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(41, 41, 450, '2025-07-21', '2025-09-01', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(42, 42, 480, '2025-07-21', '2025-09-01', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(43, 43, 470, '2025-07-22', '2025-09-02', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(44, 44, 460, '2025-07-22', '2025-09-02', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(45, 45, 450, '2025-07-23', '2025-09-03', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(46, 46, 455, '2025-07-23', '2025-09-03', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(47, 47, 470, '2025-07-24', '2025-09-04', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(48, 48, 460, '2025-07-24', '2025-09-04', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(49, 49, 450, '2025-07-25', '2025-09-05', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(50, 50, 480, '2025-07-25', '2025-09-05', 'disponivel', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(51, 1, 470, '2025-07-26', '2025-09-06', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(52, 2, 460, '2025-07-26', '2025-09-06', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(53, 3, 450, '2025-07-27', '2025-09-07', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(54, 4, 480, '2025-07-27', '2025-09-07', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(55, 5, 470, '2025-07-28', '2025-09-08', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(56, 6, 460, '2025-07-28', '2025-09-08', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(57, 7, 450, '2025-07-29', '2025-09-09', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(58, 8, 455, '2025-07-29', '2025-09-09', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(59, 9, 470, '2025-07-30', '2025-09-10', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(60, 10, 460, '2025-07-30', '2025-09-10', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(61, 11, 450, '2025-07-31', '2025-09-11', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50'),
+(62, 12, 480, '2025-07-31', '2025-09-11', 'reservada', '2025-07-10 16:28:50', '2025-07-10 16:28:50');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `dadores`
+-- Table structure for table `campanhas`
+--
+
+CREATE TABLE `campanhas` (
+  `id` int NOT NULL,
+  `titulo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `data_inicio` date NOT NULL,
+  `data_fim` date NOT NULL,
+  `meta` int NOT NULL,
+  `arrecadado` int DEFAULT '0',
+  `prioridade` enum('normal','urgente','critica') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'normal',
+  `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `campanhas`
+--
+
+INSERT INTO `campanhas` (`id`, `titulo`, `data_inicio`, `data_fim`, `meta`, `arrecadado`, `prioridade`, `descricao`, `criado_em`, `atualizado_em`) VALUES
+(1, 'Campanha de Verão 2025', '2025-07-01', '2025-07-31', 200, 50, 'urgente', 'Aumentar estoques para o verão com doações regulares', '2025-07-10 16:26:05', '2025-07-10 16:26:05'),
+(2, 'Emergência O-', '2025-07-10', '2025-07-20', 50, 3, 'critica', 'Necessidade urgente de sangue tipo O- para cirurgias', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(3, 'Doe em Julho', '2025-07-01', '2025-07-31', 150, 50, 'normal', 'Campanha mensal de doação de sangue', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(4, 'Especial A+', '2025-07-15', '2025-07-30', 80, 3, 'normal', 'Campanha focada em doadores tipo A+', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(5, 'Férias Solidárias', '2025-07-05', '2025-07-25', 100, 42, 'normal', 'Doe durante suas férias e salve vidas', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(6, 'Sangue B- Urgente', '2025-07-12', '2025-07-22', 40, 3, 'critica', 'Necessidade imediata de B- para transplantes', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(7, 'Tipo O+ e O-', '2025-07-20', '2025-07-31', 120, 3, 'urgente', 'Doadores O+ e O- são sempre necessários', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(8, 'Campanha AB-', '2025-07-05', '2025-07-25', 60, 5, 'normal', 'Doadores AB- são universais de plasma', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(9, 'Doe no Seu Bairro', '2025-07-10', '2025-07-24', 90, 30, 'normal', 'Unidade móvel visitará diversos bairros', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(10, 'Emergência Pediátrica', '2025-07-18', '2025-07-25', 70, 6, 'critica', 'Crianças precisam de doações compatíveis', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(11, 'Tipo A- em Baixa', '2025-07-01', '2025-07-31', 110, 6, 'urgente', 'Estoque de A- abaixo do nível seguro', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(12, 'Doe e Concorra', '2025-07-01', '2025-07-31', 130, 50, 'normal', 'Doe e concorra a prêmios semanais', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(13, 'Campanha Universitária', '2025-07-15', '2025-07-30', 75, 14, 'normal', 'Incentivo à doação entre universitários', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(14, 'Sangue para Idosos', '2025-07-10', '2025-07-25', 85, 32, 'normal', 'Doações especialmente para pacientes idosos', '2025-07-10 16:26:05', '2025-07-10 16:31:29'),
+(15, 'Campanha Corporativa', '2025-07-05', '2025-07-20', 95, 32, 'normal', 'Parceria com empresas locais', '2025-07-10 16:26:05', '2025-07-10 16:31:29');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campanhas_tipos_sanguineos`
+--
+
+CREATE TABLE `campanhas_tipos_sanguineos` (
+  `id` int NOT NULL,
+  `id_campanha` int NOT NULL,
+  `tipo_sanguineo` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `campanhas_tipos_sanguineos`
+--
+
+INSERT INTO `campanhas_tipos_sanguineos` (`id`, `id_campanha`, `tipo_sanguineo`) VALUES
+(1, 1, 'A+'),
+(2, 1, 'A-'),
+(3, 1, 'B+'),
+(4, 1, 'B-'),
+(5, 1, 'AB+'),
+(6, 1, 'AB-'),
+(7, 1, 'O+'),
+(8, 1, 'O-'),
+(9, 2, 'O-'),
+(10, 3, 'A+'),
+(11, 3, 'A-'),
+(12, 3, 'B+'),
+(13, 3, 'B-'),
+(14, 3, 'AB+'),
+(15, 3, 'AB-'),
+(16, 3, 'O+'),
+(17, 3, 'O-'),
+(18, 4, 'A+'),
+(19, 5, 'A+'),
+(20, 5, 'A-'),
+(21, 5, 'B+'),
+(22, 5, 'B-'),
+(23, 5, 'AB+'),
+(24, 5, 'AB-'),
+(25, 5, 'O+'),
+(26, 5, 'O-'),
+(27, 6, 'B-'),
+(28, 7, 'O+'),
+(29, 7, 'O-'),
+(30, 8, 'AB-'),
+(31, 9, 'A+'),
+(32, 9, 'A-'),
+(33, 9, 'B+'),
+(34, 9, 'B-'),
+(35, 9, 'AB+'),
+(36, 9, 'AB-'),
+(37, 9, 'O+'),
+(38, 9, 'O-'),
+(39, 10, 'A+'),
+(40, 10, 'O+'),
+(41, 10, 'O-'),
+(42, 11, 'A-'),
+(43, 12, 'A+'),
+(44, 12, 'A-'),
+(45, 12, 'B+'),
+(46, 12, 'B-'),
+(47, 12, 'AB+'),
+(48, 12, 'AB-'),
+(49, 12, 'O+'),
+(50, 12, 'O-'),
+(51, 13, 'A-'),
+(52, 13, 'B-'),
+(53, 13, 'AB-'),
+(54, 13, 'O+'),
+(55, 13, 'O-'),
+(56, 14, 'A+'),
+(57, 14, 'A-'),
+(58, 14, 'B+'),
+(59, 14, 'B-'),
+(60, 14, 'AB+'),
+(61, 14, 'AB-'),
+(62, 14, 'O+'),
+(63, 14, 'O-'),
+(64, 15, 'A+'),
+(65, 15, 'A-'),
+(66, 15, 'B+'),
+(67, 15, 'B-'),
+(68, 15, 'AB+'),
+(69, 15, 'AB-'),
+(70, 15, 'O+'),
+(71, 15, 'O-');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `dadores`
 --
 
 CREATE TABLE `dadores` (
-  `id` int(11) NOT NULL,
-  `nome` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `n_utente` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `nome` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `n_utente` int NOT NULL,
   `data_nascimento` date NOT NULL,
-  `tipo_sanguineo` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') NOT NULL,
+  `tipo_sanguineo` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `peso` float NOT NULL,
-  `sexo` enum('masculino','feminino') NOT NULL,
+  `sexo` enum('masculino','feminino') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `estado` tinyint(1) NOT NULL,
-  `data_inscricao` date NOT NULL
+  `data_inscricao` date NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `dadores`
+-- Dumping data for table `dadores`
 --
 
-INSERT INTO `dadores` (`id`, `nome`, `email`, `n_utente`, `data_nascimento`, `tipo_sanguineo`, `peso`, `sexo`, `estado`, `data_inscricao`) VALUES
-(1, 'João Oliveira', 'joao.oliveira98@email.com', 123456789, '1998-04-15', 'O+', 72.5, 'masculino', 1, '2025-02-06'),
-(8, 'Rafael Moreira', 'rafael.moreira92@email.com', 123456779, '1992-07-21', 'O+', 74.5, 'masculino', 1, '2025-02-06'),
-(9, 'Beatriz Almeida', 'beatriz.almeida88@email.com', 987654321, '1988-11-03', 'A-', 62.3, 'feminino', 1, '2025-02-06'),
-(10, 'Lucas Ferreira', 'lucas.ferreira95@email.com', 456123789, '1995-03-12', 'B+', 80.7, 'masculino', 1, '2025-02-06'),
-(11, 'Sofia Costa', 'sofia.costa99@email.com', 741852963, '1999-09-28', 'AB-', 55.8, 'feminino', 1, '2025-02-06'),
-(12, 'Miguel Nunes', 'miguel.nunes85@email.com', 369258147, '1985-05-17', 'A+', 88.2, 'masculino', 1, '2025-02-06'),
-(13, 'Luana Texeira', 'Luna.texeira@gmail.com', 312314567, '1999-08-05', 'A+', 65, 'feminino', 1, '2025-02-06'),
-(14, 'Junior Cavalcante', 'Junior.valc@gmail.com', 345678234, '2000-04-06', 'O-', 76, 'masculino', 1, '2025-02-06');
+INSERT INTO `dadores` (`id`, `nome`, `email`, `n_utente`, `data_nascimento`, `tipo_sanguineo`, `peso`, `sexo`, `estado`, `data_inscricao`, `criado_em`, `atualizado_em`) VALUES
+(1, 'Ana Silva', 'ana.silva@email.com', 123456789, '1990-05-15', 'A+', 65.5, 'feminino', 1, '2025-06-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(2, 'Bruno Santos', 'bruno.santos@email.com', 234567890, '1985-08-22', 'O+', 78.2, 'masculino', 1, '2025-06-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(3, 'Carla Mendes', 'carla.mendes@email.com', 345678901, '1992-03-10', 'B-', 62.8, 'feminino', 1, '2025-06-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(4, 'Diogo Alves', 'diogo.alves@email.com', 456789012, '1988-11-30', 'AB+', 85, 'masculino', 1, '2025-06-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(5, 'Eva Pereira', 'eva.pereira@email.com', 567890123, '1995-07-18', 'A-', 58.3, 'feminino', 1, '2025-06-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(6, 'Filipe Costa', 'filipe.costa@email.com', 678901234, '1983-04-25', 'O-', 76.7, 'masculino', 1, '2025-06-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(7, 'Gabriela Lopes', 'gabriela.lopes@email.com', 789012345, '1998-01-12', 'B+', 63.2, 'feminino', 1, '2025-06-28', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(8, 'Hugo Martins', 'hugo.martins@email.com', 890123456, '1987-09-05', 'AB-', 82.5, 'masculino', 1, '2025-07-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(9, 'Inês Ferreira', 'ines.ferreira@email.com', 901234567, '1993-12-20', 'A+', 59.8, 'feminino', 1, '2025-07-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(10, 'João Rodrigues', 'joao.rodrigues@email.com', 123456780, '1980-06-08', 'O+', 80.1, 'masculino', 1, '2025-07-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(11, 'Laura Gomes', 'laura.gomes@email.com', 234567801, '1996-02-14', 'B-', 61.5, 'feminino', 1, '2025-07-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(12, 'Miguel Sousa', 'miguel.sousa@email.com', 345678012, '1989-10-31', 'AB+', 83.7, 'masculino', 1, '2025-07-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(13, 'Nádia Teixeira', 'nadia.teixeira@email.com', 456780123, '1994-07-22', 'A-', 57.9, 'feminino', 1, '2025-07-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(14, 'Óscar Pinto', 'oscar.pinto@email.com', 567801234, '1982-04-17', 'O-', 79.3, 'masculino', 1, '2025-07-30', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(15, 'Patrícia Rocha', 'patricia.rocha@email.com', 678012345, '1997-01-05', 'B+', 64.1, 'feminino', 1, '2025-07-31', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(16, 'Ricardo Neves', 'ricardo.neves@email.com', 780123456, '1986-08-28', 'AB-', 81.6, 'masculino', 1, '2025-07-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(17, 'Sara Antunes', 'sara.antunes@email.com', 801234567, '1991-05-19', 'A+', 60.7, 'feminino', 1, '2025-07-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(18, 'Tiago Matos', 'tiago.matos@email.com', 123456788, '1984-12-03', 'O+', 77.4, 'masculino', 1, '2025-07-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(19, 'Vera Cunha', 'vera.cunha@email.com', 234567899, '1999-09-16', 'B-', 62, 'feminino', 1, '2025-07-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(20, 'Xavier Ribeiro', 'xavier.ribeiro@email.com', 345678900, '1981-03-27', 'AB+', 84.8, 'masculino', 1, '2025-07-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(21, 'Yara Machado', 'yara.machado@email.com', 456789011, '1995-11-09', 'A-', 58.5, 'feminino', 1, '2025-07-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(22, 'Zé Nunes', 'ze.nunes@email.com', 567890122, '1988-06-24', 'O-', 78.9, 'masculino', 1, '2025-07-30', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(23, 'Alice Cardoso', 'alice.cardoso@email.com', 678901233, '1993-02-11', 'B+', 63.8, 'feminino', 1, '2025-07-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(24, 'Bernardo Dias', 'bernardo.dias@email.com', 789012344, '1987-10-04', 'AB-', 82.3, 'masculino', 1, '2025-07-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(25, 'Clara Esteves', 'clara.esteves@email.com', 890123455, '1998-07-29', 'A+', 59.2, 'feminino', 1, '2025-07-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(26, 'Daniel Lourenço', 'daniel.lourenco@email.com', 901234566, '1983-04-13', 'O+', 79.7, 'masculino', 1, '2025-07-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(27, 'Elisa Baptista', 'elisa.baptista@email.com', 123456777, '1996-12-06', 'B-', 61.3, 'feminino', 1, '2025-07-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(28, 'Fábio Pacheco', 'fabio.pacheco@email.com', 234567888, '1989-08-21', 'AB+', 83.5, 'masculino', 1, '2025-07-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(29, 'Gisela Tavares', 'gisela.tavares@email.com', 345678999, '1994-05-14', 'A-', 57.6, 'feminino', 1, '2025-07-30', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(30, 'Hélder Borges', 'helder.borges@email.com', 456789000, '1980-01-07', 'O-', 80.4, 'masculino', 1, '2025-07-31', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(31, 'Irina Ventura', 'irina.ventura@email.com', 567890111, '1997-09-30', 'B+', 64.5, 'feminino', 1, '2025-07-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(32, 'José Faria', 'jose.faria@email.com', 678901222, '1985-06-23', 'AB-', 81.9, 'masculino', 1, '2025-07-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(33, 'Kelly Miranda', 'kelly.miranda@email.com', 789012333, '1992-03-16', 'A+', 60.1, 'feminino', 1, '2025-07-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(34, 'Luís Campos', 'luis.campos@email.com', 890123444, '1988-12-09', 'O+', 78, 'masculino', 1, '2025-07-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(35, 'Marta Cardoso', 'marta.cardoso@email.com', 901234555, '1999-07-02', 'B-', 62.7, 'feminino', 1, '2025-07-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(36, 'Nuno Morais', 'nuno.morais@email.com', 123456666, '1983-02-25', 'AB+', 84.2, 'masculino', 1, '2025-07-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(37, 'Olívia Domingues', 'olivia.domingues@email.com', 234567777, '1996-10-18', 'A-', 58.8, 'feminino', 1, '2025-07-30', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(38, 'Paulo Anjos', 'paulo.anjos@email.com', 345678888, '1981-05-11', 'O-', 79.5, 'masculino', 1, '2025-07-31', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(39, 'Queila Barros', 'queila.barros@email.com', 456789999, '1998-01-04', 'B+', 63.9, 'feminino', 1, '2025-07-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(40, 'Rui Castro', 'rui.castro@email.com', 567890000, '1986-08-27', 'AB-', 82.8, 'masculino', 1, '2025-07-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(41, 'Sofia Lima', 'sofia.lima@email.com', 678901111, '1993-04-20', 'A+', 59.5, 'feminino', 1, '2025-07-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(42, 'Tomás Coelho', 'tomas.coelho@email.com', 789012222, '1987-11-13', 'O+', 77.8, 'masculino', 1, '2025-07-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(43, 'Úrsula Guerreiro', 'ursula.guerreiro@email.com', 890123333, '1994-08-06', 'B-', 61.8, 'feminino', 1, '2025-07-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(44, 'Vasco Leite', 'vasco.leite@email.com', 901234444, '1989-03-30', 'AB+', 83.1, 'masculino', 1, '2025-07-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(45, 'Wanda Andrade', 'wanda.andrade@email.com', 123455555, '1997-12-23', 'A-', 57.3, 'feminino', 1, '2025-07-30', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(46, 'Xénia Brito', 'xenia.brito@email.com', 234566666, '1982-07-16', 'O-', 80.7, 'feminino', 1, '2025-07-31', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(47, 'Yves Abreu', 'yves.abreu@email.com', 345677777, '1995-04-09', 'B+', 64.3, 'masculino', 1, '2025-07-01', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(48, 'Zélia Moreira', 'zelia.moreira@email.com', 456788888, '1988-11-02', 'AB-', 81.2, 'feminino', 1, '2025-07-05', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(49, 'Alexandre Esteves', 'alexandre.esteves@email.com', 567899999, '1991-06-25', 'A+', 60.4, 'masculino', 1, '2025-07-10', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(50, 'Bianca Lourenço', 'bianca.lourenco@email.com', 678900000, '1984-01-18', 'O+', 78.5, 'feminino', 1, '2025-07-15', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(51, 'César Baptista', 'cesar.baptista@email.com', 789011111, '1999-10-11', 'B-', 62.2, 'masculino', 1, '2025-07-20', '2025-07-10 16:25:22', '2025-07-10 16:25:22'),
+(52, 'Diana Pacheco', 'diana.pacheco@email.com', 890122222, '1986-05-04', 'AB+', 84.6, 'feminino', 1, '2025-07-25', '2025-07-10 16:25:22', '2025-07-10 16:25:22');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `doacoes`
+-- Table structure for table `doacoes`
 --
 
 CREATE TABLE `doacoes` (
-  `id` int(11) NOT NULL,
-  `id_dador` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `id_dador` int NOT NULL,
   `data` date NOT NULL,
   `hora` time NOT NULL,
-  `estado` enum('agendado','em_atendimento','concluido','cancelado') NOT NULL,
-  `observacoes` varchar(255) DEFAULT NULL
+  `estado` enum('agendado','em_atendimento','concluido','cancelado') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `observacoes` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `doacoes`
+-- Dumping data for table `doacoes`
 --
 
-INSERT INTO `doacoes` (`id`, `id_dador`, `data`, `hora`, `estado`, `observacoes`) VALUES
-(1, 1, '2018-06-15', '10:30:00', 'concluido', NULL),
-(2, 1, '2020-09-22', '14:15:00', 'concluido', NULL),
-(3, 8, '2017-03-10', '09:45:00', 'concluido', NULL),
-(4, 8, '2019-12-05', '16:20:00', 'concluido', NULL),
-(5, 9, '2016-07-28', '11:10:00', 'concluido', NULL),
-(6, 9, '2021-04-18', '13:00:00', 'concluido', NULL),
-(7, 10, '2015-11-30', '08:55:00', 'concluido', NULL),
-(8, 10, '2023-02-14', '15:40:00', 'concluido', NULL),
-(9, 11, '2022-08-07', '12:25:00', 'concluido', NULL),
-(10, 12, '2019-05-21', '17:30:00', 'concluido', NULL),
-(11, 11, '2025-01-31', '15:00:00', 'agendado', NULL),
-(12, 10, '2025-01-31', '10:30:00', 'agendado', NULL),
-(13, 11, '2025-02-04', '19:00:00', 'concluido', NULL),
-(14, 13, '2025-02-05', '12:30:00', 'concluido', NULL);
+INSERT INTO `doacoes` (`id`, `id_dador`, `data`, `hora`, `estado`, `observacoes`, `criado_em`, `atualizado_em`) VALUES
+(1, 1, '2025-07-01', '09:00:00', 'concluido', 'Primeira doação do mês', '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(2, 2, '2025-07-01', '10:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(3, 3, '2025-07-02', '14:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(4, 4, '2025-07-02', '15:45:00', 'concluido', 'Doador frequente', '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(5, 5, '2025-07-03', '11:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(6, 6, '2025-07-03', '16:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(7, 7, '2025-07-04', '09:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(8, 8, '2025-07-04', '13:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(9, 9, '2025-07-05', '10:00:00', 'concluido', 'Primeira doação', '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(10, 10, '2025-07-05', '14:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(11, 11, '2025-07-06', '11:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(12, 12, '2025-07-06', '15:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(13, 13, '2025-07-07', '09:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(14, 14, '2025-07-07', '13:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(15, 15, '2025-07-08', '10:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(16, 16, '2025-07-08', '14:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(17, 17, '2025-07-09', '11:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(18, 18, '2025-07-09', '15:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(19, 19, '2025-07-10', '09:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(20, 20, '2025-07-10', '13:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(21, 21, '2025-07-11', '10:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(22, 22, '2025-07-11', '14:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(23, 23, '2025-07-12', '11:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(24, 24, '2025-07-12', '15:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(25, 25, '2025-07-13', '09:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(26, 26, '2025-07-13', '13:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(27, 27, '2025-07-14', '10:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(28, 28, '2025-07-14', '14:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(29, 29, '2025-07-15', '11:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(30, 30, '2025-07-15', '15:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(31, 31, '2025-07-16', '09:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(32, 32, '2025-07-16', '13:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(33, 33, '2025-07-17', '10:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(34, 34, '2025-07-17', '14:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(35, 35, '2025-07-18', '11:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(36, 36, '2025-07-18', '15:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(37, 37, '2025-07-19', '09:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(38, 38, '2025-07-19', '13:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(39, 39, '2025-07-20', '10:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(40, 40, '2025-07-20', '14:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(41, 41, '2025-07-21', '11:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(42, 42, '2025-07-21', '15:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(43, 43, '2025-07-22', '09:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(44, 44, '2025-07-22', '13:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(45, 45, '2025-07-23', '10:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(46, 46, '2025-07-23', '14:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(47, 47, '2025-07-24', '11:00:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(48, 48, '2025-07-24', '15:30:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(49, 49, '2025-07-25', '09:45:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(50, 50, '2025-07-25', '13:15:00', 'concluido', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(51, 1, '2025-07-26', '10:30:00', 'agendado', 'Segunda doação do mês', '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(52, 2, '2025-07-26', '14:00:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(53, 3, '2025-07-27', '11:15:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(54, 4, '2025-07-27', '15:45:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(55, 5, '2025-07-28', '09:00:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(56, 6, '2025-07-28', '13:30:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(57, 7, '2025-07-29', '10:45:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(58, 8, '2025-07-29', '14:15:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(59, 9, '2025-07-30', '11:30:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(60, 10, '2025-07-30', '15:00:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(61, 11, '2025-07-31', '09:15:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28'),
+(62, 12, '2025-07-31', '13:45:00', 'agendado', NULL, '2025-07-10 16:27:28', '2025-07-10 16:27:28');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `exames`
+-- Table structure for table `exames`
 --
 
 CREATE TABLE `exames` (
-  `id` int(11) NOT NULL,
-  `id_bolsa` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `id_bolsa` int NOT NULL,
   `data` date NOT NULL,
   `hemoglobina` float NOT NULL,
   `hepatite` tinyint(1) NOT NULL,
   `hiv` tinyint(1) NOT NULL,
   `chagas` tinyint(1) NOT NULL,
   `sifilis` tinyint(1) NOT NULL,
-  `resultado` enum('em_analise','aprovado','reprovado') NOT NULL
+  `resultado` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `exames`
+-- Dumping data for table `exames`
 --
 
-INSERT INTO `exames` (`id`, `id_bolsa`, `data`, `hemoglobina`, `hepatite`, `hiv`, `chagas`, `sifilis`, `resultado`) VALUES
-(1, 1, '2018-06-15', 14.2, 0, 0, 0, 0, 'aprovado'),
-(2, 3, '2017-03-10', 13.8, 0, 0, 0, 0, 'aprovado'),
-(3, 5, '2016-07-28', 14.5, 0, 0, 0, 0, 'aprovado'),
-(4, 6, '2021-04-18', 13.9, 0, 0, 0, 0, 'aprovado'),
-(5, 9, '2022-08-07', 14.1, 0, 0, 0, 0, 'aprovado');
+INSERT INTO `exames` (`id`, `id_bolsa`, `data`, `hemoglobina`, `hepatite`, `hiv`, `chagas`, `sifilis`, `resultado`, `criado_em`, `atualizado_em`) VALUES
+(1, 1, '2025-07-01', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(2, 2, '2025-07-01', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(3, 3, '2025-07-02', 14.5, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(4, 4, '2025-07-02', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(5, 5, '2025-07-03', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(6, 6, '2025-07-03', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(7, 7, '2025-07-04', 14.3, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(8, 8, '2025-07-04', 13.6, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(9, 9, '2025-07-05', 14.4, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(10, 10, '2025-07-05', 13.5, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(11, 11, '2025-07-06', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(12, 12, '2025-07-06', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(13, 13, '2025-07-07', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(14, 14, '2025-07-07', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(15, 15, '2025-07-08', 14.3, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(16, 16, '2025-07-08', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(17, 17, '2025-07-09', 14, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(18, 18, '2025-07-09', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(19, 19, '2025-07-10', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(20, 20, '2025-07-10', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(21, 21, '2025-07-11', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(22, 22, '2025-07-11', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(23, 23, '2025-07-12', 14.3, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(24, 24, '2025-07-12', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(25, 25, '2025-07-13', 14, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(26, 26, '2025-07-13', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(27, 27, '2025-07-14', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(28, 28, '2025-07-14', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(29, 29, '2025-07-15', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(30, 30, '2025-07-15', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(31, 31, '2025-07-16', 14, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(32, 32, '2025-07-16', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(33, 33, '2025-07-17', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(34, 34, '2025-07-17', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(35, 35, '2025-07-18', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(36, 36, '2025-07-18', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(37, 37, '2025-07-19', 14, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(38, 38, '2025-07-19', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(39, 39, '2025-07-20', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(40, 40, '2025-07-20', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(41, 41, '2025-07-21', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(42, 42, '2025-07-21', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(43, 43, '2025-07-22', 14, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(44, 44, '2025-07-22', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(45, 45, '2025-07-23', 14.2, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(46, 46, '2025-07-23', 13.7, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(47, 47, '2025-07-24', 14.1, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(48, 48, '2025-07-24', 13.9, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(49, 49, '2025-07-25', 14, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29'),
+(50, 50, '2025-07-25', 13.8, 0, 0, 0, 0, 'aprovado', '2025-07-10 16:29:29', '2025-07-10 16:29:29');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `hospitais`
+-- Table structure for table `formularios`
+--
+
+CREATE TABLE `formularios` (
+  `id` int NOT NULL,
+  `id_dador` int NOT NULL,
+  `resposta1` tinyint(1) DEFAULT NULL,
+  `resposta2` tinyint(1) DEFAULT NULL,
+  `resposta3` tinyint(1) DEFAULT NULL,
+  `resposta4` tinyint(1) DEFAULT NULL,
+  `resposta5` tinyint(1) DEFAULT NULL,
+  `resposta6` tinyint(1) DEFAULT NULL,
+  `resposta7` tinyint(1) DEFAULT NULL,
+  `resposta8` tinyint(1) DEFAULT NULL,
+  `resposta9` tinyint(1) DEFAULT NULL,
+  `resposta10` tinyint(1) DEFAULT NULL,
+  `resultado` enum('aprovado','reprovado','impossibilitado') DEFAULT NULL,
+  `proxima_tentativa` date DEFAULT NULL,
+  `criado_a` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_a` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `formularios`
+--
+
+INSERT INTO `formularios` (`id`, `id_dador`, `resposta1`, `resposta2`, `resposta3`, `resposta4`, `resposta5`, `resposta6`, `resposta7`, `resposta8`, `resposta9`, `resposta10`, `resultado`, `proxima_tentativa`, `criado_a`, `atualizado_a`, `criado_em`, `atualizado_em`) VALUES
+(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(13, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(14, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(15, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(16, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(17, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(18, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(19, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(20, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(21, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(22, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(23, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(24, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(25, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(26, 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(27, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(28, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(29, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(30, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(31, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(32, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(33, 33, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(34, 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(35, 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(36, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(37, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(38, 38, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(39, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(40, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(41, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(42, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(43, 43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(44, 44, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(45, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(46, 46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(47, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(48, 48, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(49, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02'),
+(50, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'aprovado', NULL, '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02', '2025-07-10 16:30:02');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `hospitais`
 --
 
 CREATE TABLE `hospitais` (
-  `id` int(11) NOT NULL,
-  `nome` varchar(150) NOT NULL,
-  `endereco` text NOT NULL,
-  `telefone` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `nome_responsavel` varchar(100) NOT NULL,
-  `estado` tinyint(1) NOT NULL
+  `id` int NOT NULL,
+  `nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `endereco` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `nome_responsavel` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `estado` tinyint(1) NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `hospitais`
+-- Dumping data for table `hospitais`
 --
 
-INSERT INTO `hospitais` (`id`, `nome`, `endereco`, `telefone`, `email`, `nome_responsavel`, `estado`) VALUES
-(1, 'Hospital Sant’Ana de A-do-Barbas', 'Rua da Capela, 2405-001, Leiria, Portugal', '+351 244 123 456', 'contato@hospital-santana.pt', 'Dr. Manuel Ferreira', 1),
-(2, 'Hospital Beata Aline de Luanda', 'Avenida da Esperança, 3100-285, Pombal, Portugal', '+351 236 987 654', 'geral@hospital-beataaline.pt', 'Dra. Catarina Silva', 0),
-(3, 'Hospital Madre Juliana de Campo Grande', 'Largo dos Milagres, 2430-014, Marinha Grande, Portugal', '+351 244 321 789', 'geral@hospital-madrejuliana.pt', 'Dr. Ricardo Mendes', 1),
-(4, 'Hospital Nossa Senhora de Lenice', 'Travessa da Saúde, 2434-020, Batalha, Portugal', '+351 244 654 321', 'contato@hospital-nslenice.pt', 'Dra. Ana Beatriz Lopes', 0),
-(5, 'Hospital Irmã Rebeca de Recife', 'Estrada dos Anjos, 2480-169, Porto de Mós, Portugal', '+351 244 852 963', 'contato@hospital-irmarebeca.pt', 'Dr. João Pereira', 0),
-(6, 'Hospital São João de Lisboa', 'Avenida João XXIII, 1000-100, Lisboa, Portugal', '+351 210 123 456', 'geral@hospital-saojoao.pt', 'Dr. José Almeida', 1),
-(7, 'Hospital Santa Maria do Porto', 'Rua de Santa Catarina, 4000-267, Porto, Portugal', '+351 220 654 321', 'contato@hospital-santamaria.pt', 'Dra. Clara Costa', 1),
-(8, 'Hospital de São Pedro de Braga', 'Rua da Ponte, 4710-434, Braga, Portugal', '+351 253 987 654', 'geral@hospital-saopedro.pt', 'Dr. Fernando Lima', 0),
-(9, 'Hospital Nossa Senhora da Graça', 'Avenida da Liberdade, 5000-001, Coimbra, Portugal', '+351 239 852 963', 'contato@hospital-ssaograça.pt', 'Dr. João Pereira', 0);
+INSERT INTO `hospitais` (`id`, `nome`, `endereco`, `telefone`, `email`, `nome_responsavel`, `estado`, `criado_em`, `atualizado_em`) VALUES
+(1, 'Hospital Central de Leiria', 'Rua Dr. João Soares, 2410-197 Leiria', '+351 244 000 001', 'central.leiria@hemovida.pt', 'Dr. António Silva', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(2, 'Hospital São Francisco', 'Av. Heróis de Angola 45, 2400-118 Leiria', '+351 244 000 002', 'saofrancisco@hemovida.pt', 'Dra. Maria Santos', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(3, 'Hospital da Luz', 'Rua Abel da Silva 12, 2415-005 Leiria', '+351 244 000 003', 'luz.leiria@hemovida.pt', 'Dr. Carlos Mendes', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(4, 'Hospital Pediátrico', 'Av. Dr. Correia Mateus 78, 2400-127 Leiria', '+351 244 000 004', 'pediatrico@hemovida.pt', 'Dra. Sofia Almeida', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(5, 'Hospital Nossa Senhora da Graça', 'Largo Professor Abel Salazar, 2410-099 Leiria', '+351 244 000 005', 'graca@hemovida.pt', 'Dr. João Pereira', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(6, 'Hospital da Misericórdia', 'Rua Domingos Sequeira 34, 2400-123 Leiria', '+351 244 000 006', 'misericordia@hemovida.pt', 'Dra. Ana Lopes', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(7, 'Hospital Ortopédico', 'Av. Combatentes da Grande Guerra, 2410-135 Leiria', '+351 244 000 007', 'ortopedico@hemovida.pt', 'Dr. Miguel Costa', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(8, 'Hospital Psiquiátrico', 'Rua Dr. Manuel Arriaga 67, 2410-148 Leiria', '+351 244 000 008', 'psiquiatrico@hemovida.pt', 'Dra. Beatriz Fernandes', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(9, 'Hospital Materno-Infantil', 'Av. Santo André 89, 2410-156 Leiria', '+351 244 000 009', 'materno@hemovida.pt', 'Dr. Rui Martins', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28'),
+(10, 'Hospital Geral de Pombal', 'Rua Dr. Simões Raposo 23, 3100-456 Pombal', '+351 236 000 010', 'pombal@hemovida.pt', 'Dra. Carla Rodrigues', 1, '2025-07-10 16:24:28', '2025-07-10 16:24:28');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `transfusoes`
+-- Table structure for table `transfusoes`
 --
 
 CREATE TABLE `transfusoes` (
-  `id` int(10) NOT NULL,
-  `id_bolsa` int(10) NOT NULL,
-  `n_utente` int(9) NOT NULL,
+  `id` int NOT NULL,
+  `id_bolsa` int NOT NULL,
+  `n_utente` int NOT NULL,
   `data` date NOT NULL,
-  `id_hospital` int(10) NOT NULL
+  `id_hospital` int NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  `atualizado_em` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `transfusoes`
+-- Dumping data for table `transfusoes`
 --
 
-INSERT INTO `transfusoes` (`id`, `id_bolsa`, `n_utente`, `data`, `id_hospital`) VALUES
-(1, 1, 234567890, '2018-07-01', 1),
-(2, 3, 345678901, '2017-03-15', 3),
-(3, 5, 456789012, '2016-08-02', 4),
-(4, 6, 567890123, '2021-05-02', 2),
-(5, 5, 678901234, '2022-08-15', 5);
+INSERT INTO `transfusoes` (`id`, `id_bolsa`, `n_utente`, `data`, `id_hospital`, `criado_em`, `atualizado_em`) VALUES
+(1, 1, 123456789, '2025-07-05', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(2, 2, 234567890, '2025-07-05', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(3, 3, 345678901, '2025-07-06', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(4, 4, 456789012, '2025-07-06', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(5, 5, 567890123, '2025-07-07', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(6, 6, 678901234, '2025-07-07', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(7, 7, 789012345, '2025-07-08', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(8, 8, 890123456, '2025-07-08', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(9, 9, 901234567, '2025-07-09', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(10, 10, 123456780, '2025-07-09', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(11, 11, 234567801, '2025-07-10', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(12, 12, 345678012, '2025-07-10', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(13, 13, 456780123, '2025-07-11', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(14, 14, 567801234, '2025-07-11', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(15, 15, 678012345, '2025-07-12', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(16, 16, 780123456, '2025-07-12', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(17, 17, 801234567, '2025-07-13', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(18, 18, 123456788, '2025-07-13', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(19, 19, 234567899, '2025-07-14', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(20, 20, 345678900, '2025-07-14', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(21, 21, 456789011, '2025-07-15', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(22, 22, 567890122, '2025-07-15', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(23, 23, 678901233, '2025-07-16', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(24, 24, 789012344, '2025-07-16', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(25, 25, 890123455, '2025-07-17', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(26, 26, 901234566, '2025-07-17', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(27, 27, 123456777, '2025-07-18', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(28, 28, 234567888, '2025-07-18', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(29, 29, 345678999, '2025-07-19', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(30, 30, 456789000, '2025-07-19', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(31, 31, 567890111, '2025-07-20', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(32, 32, 678901222, '2025-07-20', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(33, 33, 789012333, '2025-07-21', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(34, 34, 890123444, '2025-07-21', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(35, 35, 901234555, '2025-07-22', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(36, 36, 123456666, '2025-07-22', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(37, 37, 234567777, '2025-07-23', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(38, 38, 345678888, '2025-07-23', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(39, 39, 456789999, '2025-07-24', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(40, 40, 567890000, '2025-07-24', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(41, 41, 678901111, '2025-07-25', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(42, 42, 789012222, '2025-07-25', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(43, 43, 890123333, '2025-07-26', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(44, 44, 901234444, '2025-07-26', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(45, 45, 123455555, '2025-07-27', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(46, 46, 234566666, '2025-07-27', 1, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(47, 47, 345677777, '2025-07-28', 2, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(48, 48, 456788888, '2025-07-28', 3, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(49, 49, 567899999, '2025-07-29', 4, '2025-07-10 16:30:40', '2025-07-10 16:30:40'),
+(50, 50, 678900000, '2025-07-29', 5, '2025-07-10 16:30:40', '2025-07-10 16:30:40');
 
 --
--- Índices para tabelas despejadas
+-- Indexes for dumped tables
 --
 
 --
--- Índices para tabela `bolsas_sangue`
+-- Indexes for table `bolsas_sangue`
 --
 ALTER TABLE `bolsas_sangue`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices para tabela `dadores`
+-- Indexes for table `campanhas`
+--
+ALTER TABLE `campanhas`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `campanhas_tipos_sanguineos`
+--
+ALTER TABLE `campanhas_tipos_sanguineos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_campanha` (`id_campanha`);
+
+--
+-- Indexes for table `dadores`
 --
 ALTER TABLE `dadores`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices para tabela `doacoes`
+-- Indexes for table `doacoes`
 --
 ALTER TABLE `doacoes`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_dador` (`id_dador`);
 
 --
--- Índices para tabela `exames`
+-- Indexes for table `exames`
 --
 ALTER TABLE `exames`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_bolsa` (`id_bolsa`);
 
 --
--- Índices para tabela `hospitais`
+-- Indexes for table `formularios`
+--
+ALTER TABLE `formularios`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_dador` (`id_dador`);
+
+--
+-- Indexes for table `hospitais`
 --
 ALTER TABLE `hospitais`
   ADD PRIMARY KEY (`id`);
 
 --
--- Índices para tabela `transfusoes`
+-- Indexes for table `transfusoes`
 --
 ALTER TABLE `transfusoes`
   ADD PRIMARY KEY (`id`),
@@ -250,73 +789,113 @@ ALTER TABLE `transfusoes`
   ADD KEY `id_hospital` (`id_hospital`);
 
 --
--- AUTO_INCREMENT de tabelas despejadas
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT de tabela `bolsas_sangue`
+-- AUTO_INCREMENT for table `bolsas_sangue`
 --
 ALTER TABLE `bolsas_sangue`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
--- AUTO_INCREMENT de tabela `dadores`
+-- AUTO_INCREMENT for table `campanhas`
+--
+ALTER TABLE `campanhas`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `campanhas_tipos_sanguineos`
+--
+ALTER TABLE `campanhas_tipos_sanguineos`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+
+--
+-- AUTO_INCREMENT for table `dadores`
 --
 ALTER TABLE `dadores`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
--- AUTO_INCREMENT de tabela `doacoes`
+-- AUTO_INCREMENT for table `doacoes`
 --
 ALTER TABLE `doacoes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
--- AUTO_INCREMENT de tabela `exames`
+-- AUTO_INCREMENT for table `exames`
 --
 ALTER TABLE `exames`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
--- AUTO_INCREMENT de tabela `hospitais`
+-- AUTO_INCREMENT for table `formularios`
+--
+ALTER TABLE `formularios`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+
+--
+-- AUTO_INCREMENT for table `hospitais`
 --
 ALTER TABLE `hospitais`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT de tabela `transfusoes`
+-- AUTO_INCREMENT for table `transfusoes`
 --
 ALTER TABLE `transfusoes`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
--- Restrições para despejos de tabelas
+-- Constraints for dumped tables
 --
 
 --
--- Limitadores para a tabela `bolsas_sangue`
+-- Constraints for table `bolsas_sangue`
 --
 ALTER TABLE `bolsas_sangue`
   ADD CONSTRAINT `bolsas_sangue_ibfk_1` FOREIGN KEY (`id`) REFERENCES `doacoes` (`id`);
 
 --
--- Limitadores para a tabela `doacoes`
+-- Constraints for table `campanhas_tipos_sanguineos`
+--
+ALTER TABLE `campanhas_tipos_sanguineos`
+  ADD CONSTRAINT `campanhas_tipos_sanguineos_ibfk_1` FOREIGN KEY (`id_campanha`) REFERENCES `campanhas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `doacoes`
 --
 ALTER TABLE `doacoes`
   ADD CONSTRAINT `doacoes_ibfk_1` FOREIGN KEY (`id_dador`) REFERENCES `dadores` (`id`);
 
 --
--- Limitadores para a tabela `exames`
+-- Constraints for table `exames`
 --
 ALTER TABLE `exames`
   ADD CONSTRAINT `exames_ibfk_1` FOREIGN KEY (`id_bolsa`) REFERENCES `bolsas_sangue` (`id`);
 
 --
--- Limitadores para a tabela `transfusoes`
+-- Constraints for table `formularios`
+--
+ALTER TABLE `formularios`
+  ADD CONSTRAINT `formularios_ibfk_1` FOREIGN KEY (`id_dador`) REFERENCES `dadores` (`id`);
+
+--
+-- Constraints for table `transfusoes`
 --
 ALTER TABLE `transfusoes`
   ADD CONSTRAINT `transfusoes_ibfk_1` FOREIGN KEY (`id_bolsa`) REFERENCES `bolsas_sangue` (`id`),
   ADD CONSTRAINT `transfusoes_ibfk_2` FOREIGN KEY (`id_hospital`) REFERENCES `hospitais` (`id`);
+
+DELIMITER $$
+--
+-- Events
+--
+CREATE DEFINER=`root`@`localhost` EVENT `atualizar_campanhas_diario` ON SCHEDULE EVERY 1 DAY STARTS '2025-07-04 19:55:42' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    CALL atualizar_progresso_campanhas();
+END$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
