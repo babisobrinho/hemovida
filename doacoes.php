@@ -10,10 +10,214 @@
         ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
         ['title' => 'Doações', 'url' => '#', 'active' => true]
     ];
+
+    // Obter tipos sanguíneos
+    $tiposSanguineosQuery = "SELECT DISTINCT tipo_sanguineo FROM dadores";
+    $tiposSanguineosStmt = $pdo->query($tiposSanguineosQuery);
+    $tiposSanguineos = $tiposSanguineosStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Estatísticas
+    $allTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    
+    // Total geral de doações
+    $totalGeralQuery = "SELECT COUNT(*) as total FROM doacoes";
+    $totalGeralStmt = $pdo->query($totalGeralQuery);
+    $totalGeral = $totalGeralStmt->fetchColumn();
+
+    // Doações por tipo sanguíneo (corrigido com JOIN)
+    $statsQuery = "SELECT d.tipo_sanguineo, COUNT(*) AS total 
+               FROM doacoes doa
+               JOIN dadores d ON doa.id_dador = d.id
+               GROUP BY d.tipo_sanguineo
+               ORDER BY total DESC";
+    $statsStmt = $pdo->query($statsQuery);
+    $dbStats = $statsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Obter tipo sanguíneo mais comum
+    $tipoMaisComum = !empty($dbStats) ? $dbStats[0]['tipo_sanguineo'] : 'N/A';
+    $totalTipoMaisComum = !empty($dbStats) ? $dbStats[0]['total'] : 0;
+
+    $stats = [];
+    foreach ($allTypes as $type) {
+        $found = false;
+        foreach ($dbStats as $dbStat) {
+            if ($dbStat['tipo_sanguineo'] == $type) {
+                $stats[] = $dbStat;
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            $stats[] = ['tipo_sanguineo' => $type, 'total' => 0];
+        }
+    }
+
+    // Doações na data selecionada
+    $totalDataSelecionada = count($doacoes);
+
+    // Média diária de doações
+    $diasFuncionamento = 365;
+    $mediaDiaria = $totalGeral > 0 ? round($totalGeral / $diasFuncionamento, 1) : 0;
 ?>
 
     <div class="container p-4">
         <?php include 'partials/page-header.php'; ?>
+        
+        <!-- Seção de Estatísticas -->
+        <div class="container-fluid mb-5 px-0">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pb-0 pt-3 px-4">
+                    <h5 class="mb-0 font-weight-bold text-danger">
+                        <i class="fas fa-chart-line me-2"></i>Estatísticas de Doações
+                    </h5>
+                        
+                    <ul class="nav nav-tabs border-0 mt-3" id="statsTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link px-3 py-2 border-0 fw-bold <?= (!isset($_GET['tab']) || $_GET['tab'] === 'overview' ? 'active text-danger' : 'text-body-secondary') ?> link-danger link-opacity-75-hover" 
+                            id="overview-tab" 
+                            data-bs-toggle="tab" 
+                            href="#overview" 
+                            role="tab">
+                                <i class="fas fa-eye me-1"></i> Visão Geral
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 py-2 border-0 fw-bold <?= (isset($_GET['tab']) && $_GET['tab'] === 'bloodtypes' ? 'active text-danger' : 'text-body-secondary') ?> link-danger link-opacity-75-hover" 
+                            id="bloodtypes-tab" 
+                            data-bs-toggle="tab" 
+                            href="#bloodtypes" 
+                            role="tab">
+                                <i class="fas fa-heartbeat me-1"></i> Tipos Sanguíneos
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="tab-content" id="statsTabContent">
+                        <!-- Tab 1: Visão Geral -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                            <div class="row no-gutters">
+                                <!-- Total Geral -->
+                                <div class="col-lg-3 col-md-6 border-right">
+                                    <div class="p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 rounded-circle p-3 mr-3">
+                                                <i class="fas fa-tint text-danger fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-1 small text-muted">TOTAL</p>
+                                                <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= number_format($totalGeral) ?></h3>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger small">Doações</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Doações na data -->
+                                <div class="col-lg-3 col-md-6 border-right">
+                                    <div class="p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 rounded-circle p-3 mr-3">
+                                                <i class="fas fa-calendar-day text-danger fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-1 small text-muted">DOAÇÕES HOJE</p>
+                                                <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= number_format($totalDataSelecionada) ?></h3>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger small">
+                                                    Agendadas
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Média Diária -->
+                                <div class="col-lg-3 col-md-6 border-right">
+                                    <div class="p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 rounded-circle p-3 mr-3">
+                                                <i class="fas fa-chart-bar text-danger fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-1 small text-muted">MÉDIA DIÁRIA</p>
+                                                <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= $mediaDiaria ?></h3>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger small">por dia</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tipo Sanguíneo Mais Comum -->
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 rounded-circle p-3 mr-3">
+                                                <i class="fas fa-heartbeat text-danger fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-1 small text-muted">TIPO MAIS COMUM</p>
+                                                <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= htmlspecialchars($tipoMaisComum, ENT_QUOTES, 'UTF-8') ?></h3>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger small">
+                                                    <?= $totalTipoMaisComum ?> doações
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab 2: Tipos Sanguíneos -->
+                        <div class="tab-pane fade" id="bloodtypes" role="tabpanel">
+                            <div class="p-4">
+                                <h6 class="font-weight-bold text-muted mb-3">Distribuição por Tipo Sanguíneo</h6>
+                                <div class="row">
+                                    <?php 
+                                    $totalTransfusoes = $totalGeral > 0 ? $totalGeral : 1;
+                                    
+                                    foreach ($stats as $stat): 
+                                        $totalTipo = $stat['total'];
+                                        $percentagem = ($totalTipo / $totalTransfusoes) * 100;
+                                        $percentagemFormatada = number_format($percentagem, 1);
+                                    ?>
+                                    <div class="col-md-6 col-lg-3 mb-4">
+                                        <div class="card border-0 shadow-sm h-100">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1">
+                                                        <?= htmlspecialchars($stat['tipo_sanguineo'], ENT_QUOTES, 'UTF-8') ?>
+                                                    </span>
+                                                    <span class="font-weight-bold h5 mb-0"><?= $totalTipo ?></span>
+                                                </div>
+                                                <div class="progress bg-light" style="height: 8px;">
+                                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                                         style="width: <?= $percentagem ?>%" 
+                                                         aria-valuenow="<?= $percentagem ?>" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100"></div>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-2">
+                                                    <small class="text-muted">Percentagem</small>
+                                                    <small class="font-weight-bold text-danger">
+                                                        <?= $percentagemFormatada ?>%
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="text-end small text-muted mt-2">
+                                    * Baseado em <?= $totalGeral ?> doações registadas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row d-flex align-content-center">
             <div class="col-md-6 col-12 d-flex align-content-center justify-content-start mb-2">
                 <a href="doacao-criar.php" class="btn text-white" style="background-color: #202d3b;">
@@ -270,6 +474,36 @@
                 const deleteConfirmButton = document.getElementById('deleteConfirmButtonDoacao');
                 deleteConfirmButton.setAttribute('href', 'includes/destroy.php?table=doacoes&id=' + doacaoId);
             });
+        });
+        
+        // Atualiza a URL quando as abas são alteradas e mantém o estado
+        document.querySelectorAll('#statsTabs .nav-link').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                const tabId = e.target.getAttribute('href').substring(1);
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', tabId);
+                window.history.pushState({}, '', url);
+                
+                // Atualiza as classes dos links
+                document.querySelectorAll('#statsTabs .nav-link').forEach(link => {
+                    link.classList.remove('active', 'text-danger');
+                    link.classList.add('text-secondary');
+                });
+                e.target.classList.add('active', 'text-danger');
+                e.target.classList.remove('text-secondary');
+            });
+        });
+
+        // Ativa a aba correta ao carregar a página
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = 'overview';
+            
+            // Ativa a aba correta
+            const tabElement = document.querySelector(`#statsTabs a[href="#${activeTab}"]`);
+            if (tabElement) {
+                new bootstrap.Tab(tabElement).show();
+            }
         });
     </script>
 
