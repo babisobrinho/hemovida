@@ -19,7 +19,8 @@ O SQL foi a tecnologia central deste projeto, sendo utilizado para estruturar e 
 - Controlo das bolsas de sangue;
 - Supervisão do estado dos exames clínicos efetuados;
 - Gestão de transfusões de sangue realizadas;
-- Gestão das parcerias com os hospitais.
+- Gestão das parcerias com os hospitais;
+- Gestão das campanhas de doação.
 
 ## 💻 Instalação
 
@@ -55,8 +56,10 @@ http://localhost/hemovida/
 │   └── images/             # Imagens usadas no site
 │
 ├── includes/               # Ficheiros PHP que são incluídos nas páginas
+│   ├── criar_campanha.php  # Modal de criação de campanha
 │   ├── db_connection.php   # Conexão com a base de dados
 │   ├── db_functions.php    # Funções que fazem consultas à base de dados
+│   ├── filtrar_dadores.php # Funções para filtrar os dadores
 │   ├── destroy.php         # Remove registos da base de dados
 │   ├── store.php           # Cria registos na base de dados
 │   └── update.php          # Atualiza registos da base de dados
@@ -80,6 +83,7 @@ http://localhost/hemovida/
 ├── exames.php              # Página de exames realizados ao sangue
 ├── hospitais.php           # Página de hospitais parceiros
 ├── transfusoes.php         # Página de transfusões de sangue realizadas
+├── campanhas.php           # Página de campanhas de doação de sangue
 ├── sobre.php               # Página que explica sobre o que é o projeto
 │
 ├── README.md               # Ficheiro com as informações sobre o projeto
@@ -104,6 +108,8 @@ http://localhost/hemovida/
 - `exames`: contém os exames médicos realizados nas bolsas de sangue. Regista os níveis de hemoglobina e os resultados de testes para doenças como hepatite, HIV, chagas e sífilis. Por fim, também registado o resultado do exame
 - `hospitais`: contém as informações sobre os hospitais parceiros. Regista o nome, endereço, contato e o nome do responsável do hospital
 - `transfusoes`: relaciona as bolsas de sangue a pacientes que recebem transfusões nos hospitais. Regista o ID da bolsa de sangue, o número único de utente do receptor, a data da transfusão e o hospital onde foi realizada
+- `campanhas`: Armazena informações sobre campanhas de doação (título, datas de início/fim, meta de doações, prioridade e descrição)
+- `campanhas_tipos_sanguineos`: Relaciona campanhas com tipos sanguíneos específicos visados
 
 ### 🔗 Relacionamentos
 
@@ -112,6 +118,14 @@ http://localhost/hemovida/
 - `bolsas_sangue` ↔ `exames`: todas as bolsas são submetidas a exames antes de serem utilizadas
 - `bolsas_sangue` ↔ `transfusoes`: apenas as bolsas aprovadas podem ser utilizadas para transfusões
 - `transfusoes` ↔ `hospitais`: as transfusões são realizadas em hospitais registados como parceiros
+- `campanhas` ↔ `campanhas_tipos_sanguineos`: Cada campanha pode visar múltiplos tipos sanguíneos
+
+## 🌐 Funcionalidades Avançadas
+
+- `Procedimento armazenado` - atualizar_progresso_campanhas - recalcula automaticamente doações válidas associadas a campanhas ativas
+- `Trigger` - after_doacao_insert - executa o procedimento de atualização após cada nova doação registada
+- `Evento agendado` -  Rotina diária para verificar validade de bolsas e atualizar progresso das campanhas
+- `Formulários de triagem` - Registam critérios de elegibilidade dos doadores com validação automática de prazos
 
 ## ⚙ Tecnologias Utilizadas
 
