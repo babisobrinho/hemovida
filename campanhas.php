@@ -34,7 +34,7 @@ $sqlCount = "SELECT COUNT(*) AS total FROM campanhas c
 $paramsCount = [];
 $whereConditionsCount = [];
 
-// Filtro de status (CORREÇÃO ADICIONADA)
+// Filtro de status
 if (!empty($status)) {
     if ($status == 'ativas') {
         $whereConditionsCount[] = "c.data_fim >= CURDATE()";
@@ -63,7 +63,9 @@ $totalRegistros = $stmtCount->fetchColumn();
 $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
 
 // Consulta principal com paginação
-$sql = "SELECT c.*, GROUP_CONCAT(DISTINCT cts.tipo_sanguineo) as tipos_sanguineos
+$sql = "SELECT c.*, 
+               GROUP_CONCAT(DISTINCT cts.tipo_sanguineo) as tipos_sanguineos,
+               IF(c.data_fim >= CURDATE(), 'Ativa', 'Finalizada') as status
         FROM campanhas c
         LEFT JOIN campanhas_tipos_sanguineos cts ON c.id = cts.id_campanha
         WHERE 1";
@@ -71,7 +73,7 @@ $sql = "SELECT c.*, GROUP_CONCAT(DISTINCT cts.tipo_sanguineo) as tipos_sanguineo
 $params = [];
 $whereConditions = [];
 
-// Filtro de status (CORREÇÃO ADICIONADA)
+// Filtro de status
 if (!empty($status)) {
     if ($status == 'ativas') {
         $whereConditions[] = "c.data_fim >= CURDATE()";
@@ -125,10 +127,9 @@ $statsQuery = "SELECT
                 ROUND(SUM(arrecadado) / SUM(meta) * 100, 2) as progresso_geral
               FROM campanhas";
 
-// Estatísticas filtradas (CORREÇÃO ATUALIZADA)
+// Estatísticas filtradas
 $statsFilteredData = null;
 if (!empty($whereConditions)) {
-    // Construir a mesma condição WHERE da consulta principal
     $statsFilteredQuery = "SELECT 
                             COALESCE(COUNT(*), 0) as total_filtrado,
                             COALESCE(SUM(CASE WHEN c.data_fim >= CURDATE() THEN 1 ELSE 0 END), 0) as ativas_filtrado,
@@ -400,6 +401,7 @@ $deleted = $_GET['deleted'] ?? null;
                             <th>Título</th>
                             <th class="text-center">Tipos Sanguíneos</th>
                             <th class="text-center">Período</th>
+                            <th class="text-center">Status</th>
                             <th class="text-center">Progresso</th>
                             <th class="text-center">Prioridade</th>
                             <th scope="col">Ações</th>
@@ -408,16 +410,16 @@ $deleted = $_GET['deleted'] ?? null;
                     <tbody class="table-group-divider">
                         <?php if (empty($campanhas)): ?>
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
+                                <td colspan="8" class="text-center text-muted py-4">
                                     <i class="fa-solid fa-database me-2"></i>Nenhum registo encontrado
                                 </td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($campanhas as $campanha): 
                                 $progresso = min(100, ($campanha['arrecadado'] / $campanha['meta']) * 100);
-                                $isAtiva = strtotime($campanha['data_fim']) >= time();
+                                $diasRestantes = ceil((strtotime($campanha['data_fim']) - time()) / (60 * 60 * 24));
                             ?>
-                                <tr>
+                                <tr class="<?= $campanha['status'] == 'Finalizada' ? 'bg-light bg-opacity-25' : '' ?>">
                                     <td class="text-center"><?= htmlspecialchars($campanha['id'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td>
                                         <strong><?= htmlspecialchars($campanha['titulo'], ENT_QUOTES, 'UTF-8') ?></strong>
@@ -435,9 +437,21 @@ $deleted = $_GET['deleted'] ?? null;
                                     <td class="text-center">
                                         <?= date('d/m/Y', strtotime($campanha['data_inicio'])) ?> - 
                                         <?= date('d/m/Y', strtotime($campanha['data_fim'])) ?>
-                                        <?php if ($isAtiva): ?>
-                                            <div class="small text-muted">
-                                                <?= ceil((strtotime($campanha['data_fim']) - time()) / (60 * 60 * 24)) ?> dias restantes
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($campanha['status'] == 'Ativa'): ?>
+                                            <span class="badge bg-success bg-opacity-10 text-success">
+                                                 Ativa
+                                            </span>
+                                            <div class="small text-muted mt-1">
+                                                <?= $diasRestantes ?> dias restantes
+                                            </div>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                                 Finalizada
+                                            </span>
+                                            <div class="small text-muted mt-1">
+                                                Encerrada há <?= abs($diasRestantes) ?> dias
                                             </div>
                                         <?php endif; ?>
                                     </td>
