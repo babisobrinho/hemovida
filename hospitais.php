@@ -1,28 +1,50 @@
 <?php
+include 'partials/header.php';
+include 'includes/db_functions.php';
 
-    include 'partials/header.php';
-    include 'includes/db_functions.php';
-
-    if (isset($_GET['toggle_id'])) {
-        $hospitalId = $_GET['toggle_id'];
-        if (toggleEstado($pdo, 'hospitais', $hospitalId)) {
-            $_SESSION['alert_message'] = displayAlert('Estado do hospital alterado com sucesso.', 'sucesso', 'success');
-            header("Location: hospitais.php");
-            exit;
-        } else {
-            $_SESSION['alert_message'] = displayAlert('Erro ao tentar alterar o estado do hospital.', 'erro', 'danger');
-        }
+if (isset($_GET['toggle_id'])) {
+    $hospitalId = $_GET['toggle_id'];
+    if (toggleEstado($pdo, 'hospitais', $hospitalId)) {
+        $_SESSION['alert_message'] = displayAlert('Estado do hospital alterado com sucesso.', 'sucesso', 'success');
+        header("Location: hospitais.php");
+        exit;
+    } else {
+        $_SESSION['alert_message'] = displayAlert('Erro ao tentar alterar o estado do hospital.', 'erro', 'danger');
     }
+}
 
-    $stmt = $pdo->query("SELECT * FROM hospitais");
-    $hospitais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$totalHospitaisQuery = "SELECT COUNT(*) as total FROM hospitais";
+$totalHospitaisStmt = $pdo->query($totalHospitaisQuery);
+$totalHospitais = $totalHospitaisStmt->fetchColumn();
 
-    $pageTitle = "Hospitais Parceiros";
-    $breadcrumbItems = [
-        ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
-        ['title' => 'Hospitais', 'url' => '#', 'active' => true]
-    ];
+$ativosQuery = "SELECT COUNT(*) as total FROM hospitais WHERE estado = 1";
+$ativosStmt = $pdo->query($ativosQuery);
+$totalAtivos = $ativosStmt->fetchColumn();
 
+$inativosQuery = "SELECT COUNT(*) as total FROM hospitais WHERE estado = 0";
+$inativosStmt = $pdo->query($inativosQuery);
+$totalInativos = $inativosStmt->fetchColumn();
+
+$percentAtivos = $totalHospitais > 0 ? round(($totalAtivos / $totalHospitais) * 100) : 0;
+$percentInativos = $totalHospitais > 0 ? round(($totalInativos / $totalHospitais) * 100) : 0;
+
+$topTransfusoesQuery = "SELECT h.nome, COUNT(t.id) as total 
+                        FROM hospitais h 
+                        LEFT JOIN transfusoes t ON h.id = t.id_hospital 
+                        GROUP BY h.id 
+                        ORDER BY total DESC
+                        LIMIT 1";
+$topTransfusoesStmt = $pdo->query($topTransfusoesQuery);
+$topTransfusoes = $topTransfusoesStmt->fetch(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->query("SELECT * FROM hospitais");
+$hospitais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$pageTitle = "Hospitais Parceiros";
+$breadcrumbItems = [
+    ['title' => 'Dashboard', 'url' => 'index.php', 'active' => false],
+    ['title' => 'Hospitais', 'url' => '#', 'active' => true]
+];
 ?>
 
 <div class="container p-4">
@@ -34,6 +56,91 @@
             unset($_SESSION['alert_message']);
         }
     ?>
+
+    <div class="container-fluid mb-5 px-0">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0 pt-3 px-4">
+                <h5 class="mb-0 font-weight-bold" style="color: #202d3b;">
+                    <i class="fas fa-chart-pie me-2"></i>Estatísticas de Hospitais
+                </h5>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="row no-gutters">
+                    <!-- Total de Hospitais -->
+                    <div class="col-lg-2 col-md-4 border-right">
+                        <div class="p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-3 mr-3" style="background-color: rgba(32, 45, 59, 0.1);">
+                                    <i class="fas fa-hospital" style="color: #202d3b;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-1 small text-muted">TOTAL</p>
+                                    <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= $totalHospitais ?></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hospitais Ativos -->
+                    <div class="col-lg-2 col-md-4 border-right">
+                        <div class="p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-3 mr-3" style="background-color: rgba(25, 135, 84, 0.1);">
+                                    <i class="fas fa-check-circle" style="color: #198754;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-1 small text-muted">ATIVOS</p>
+                                    <h3 class="mb-0 mx-2 fs-4 font-weight-bold"><?= $totalAtivos ?></h3>
+                                    <span class="badge" style="background-color: rgba(25, 135, 84, 0.1); color: #198754;">
+                                        <?= $percentAtivos ?>%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hospitais Inativos -->
+                    <div class="col-lg-2 col-md-4">
+                        <div class="p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-3 mr-3" style="background-color: rgba(220, 53, 69, 0.1);">
+                                    <i class="fas fa-times-circle" style="color: #dc3545;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-1 small text-muted">INATIVOS</p>
+                                    <h3 class="mb-0 fs-4 font-weight-bold mx-2"><?= $totalInativos ?></h3>
+                                    <span class="badge" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                                        <?= $percentInativos ?>%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hospital + Transfusões -->
+                    <div class="col-lg-6 border-right">
+                        <div class="p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle p-3 mr-3" style="background-color: rgba(220, 53, 69, 0.1);">
+                                    <i class="fas fa-tint" style="color: #dc3545;"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-1 small text-muted">MAIS TRANSFUSÕES</p>
+                                    <h3 class="mb-0 mx-2 fs-4 font-weight-bold">
+                                        <?= htmlspecialchars($topTransfusoes['nome'] ?? 'Nenhum', ENT_QUOTES, 'UTF-8') ?>
+                                    </h3>
+                                    <span class="badge" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                                        <?= $topTransfusoes['total'] ?? 0 ?> transfusões
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4 p-4 rounded-4" style="background-color: #ffffff; border: 1px solid #dee2e6;">
         <div>
@@ -136,45 +243,9 @@
             </div>
         </div>
     <?php endif; ?>
+    </div>
 </div>
 
-<style>
-.card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 35px rgba(32, 45, 59, 0.15) !important;
-}
-
-.badge:hover {
-    color: white !important;
-    transform: scale(1.1);
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-
-.btn-outline-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
-}
-
-.btn-light:hover {
-    background-color: #e9ecef !important;
-    transform: translateY(-2px);
-}
-
-/* Animação suave para os elementos */
-.card-body > div {
-    transition: all 0.3s ease;
-}
-
-.card:hover .card-body > div {
-    transform: translateX(5px);
-}
-</style>
-
-<!-- Modal: Remover Hospital -->
 <div class="modal fade" id="deleteModalHospital" tabindex="-1" aria-labelledby="deleteModalLabelHospital" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
@@ -199,6 +270,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Modal de delete (original)
         document.querySelectorAll('.btn-danger[data-bs-toggle="modal"]').forEach(function(deleteButton) {
             deleteButton.addEventListener('click', function () {
                 const hospitalId = this.getAttribute('data-hospital-id');
@@ -206,8 +278,41 @@
                 deleteConfirmButton.setAttribute('href', 'includes/destroy.php?table=hospitais&id=' + hospitalId);
             });
         });
+
+        // ===== EASTER EGG 2.0 (INFALÍVEL) ===== //
+        const cardTransfusoes = document.querySelector('.col-lg-6.border-right .p-4'); // Seleciona a DIV interna do card
+        
+        if (cardTransfusoes) {
+            let passadasMouse = 0;
+            const timer = 3000; // 3 segundos para resetar
+            
+            cardTransfusoes.addEventListener('mouseenter', () => {
+                passadasMouse++;
+                
+                if (passadasMouse === 3) {
+                    const titulo = cardTransfusoes.querySelector('h3');
+                    if (titulo && !titulo.querySelector('.easter-egg')) {
+                        // Adiciona o emoji secreto
+                        const emojiSecreto = document.createElement('span');
+                        emojiSecreto.className = 'easter-egg ms-2';
+                        emojiSecreto.innerHTML = '❤️ <small class="text-danger">Herói do sangue!</small>';
+                        titulo.appendChild(emojiSecreto);
+                        
+                        // Efeitos especiais
+                        cardTransfusoes.parentElement.style.transform = 'scale(1.05)';
+                        cardTransfusoes.parentElement.style.boxShadow = '0 0 25px rgba(220, 53, 69, 0.7)';
+                        
+                        // Reset após 3 segundos
+                        setTimeout(() => {
+                            cardTransfusoes.parentElement.style.transform = '';
+                            cardTransfusoes.parentElement.style.boxShadow = '';
+                            passadasMouse = 0;
+                        }, timer);
+                    }
+                }
+            });
+        }
     });
 </script>
 
 <?php include 'partials/footer.php'; ?>
-
