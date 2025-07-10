@@ -359,19 +359,25 @@ $breadcrumbItems = [['title' => 'Dashboard', 'url' => 'index.php', 'active' => t
                             <label for="titulo" class="form-label">Título da Campanha</label>
                             <input type="text" class="form-control" id="titulo" name="titulo" required>
                         </div>
-                        <div class="col-md-4">
-                            <label for="tipo_sanguineo" class="form-label">Tipo Sanguíneo</label>
-                            <select class="form-select" id="tipo_sanguineo" name="tipo_sanguineo">
-                                <option value="">Todos os tipos</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                            </select>
+                       <div class="col-12">
+                        <label class="form-label">Tipos Sanguíneos</label>
+                        <div class="row">
+                            <?php 
+                            $tiposDisponiveis = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+                            foreach ($tiposDisponiveis as $tipo): ?>
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                        id="modal_tipo_<?= $tipo ?>" name="tipos_sanguineos[]" 
+                                        value="<?= $tipo ?>">
+                                    <label class="form-check-label" for="modal_tipo_<?= $tipo ?>">
+                                        <?= $tipo ?>
+                                    </label>
+                                </div>
+                            </div>
+                             <?php endforeach; ?>
+                            </div>
+                            <small class="text-muted">Se nenhum for selecionado, a campanha será para todos os tipos.</small>
                         </div>
                         <div class="col-md-6">
                             <label for="data_inicio" class="form-label">Data Início</label>
@@ -539,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Atualiza os rótulos e dados do gráfico
                     demandChart.data.labels = data.labels;
                     
-                    // Atualiza os datasets mantendo as configurações visuais
+                    // Atualiza os datasets 
                     demandChart.data.datasets.forEach((dataset, index) => {
                         if (index === 0) {
                             dataset.data = data.doacoes;
@@ -561,6 +567,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Erro ao atualizar gráfico:', error);
             });
     };
+});
+document.getElementById('campanhaForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const tiposSelecionados = [];
+    document.querySelectorAll('input[name="tipos_sanguineos[]"]:checked').forEach(checkbox => {
+        tiposSelecionados.push(checkbox.value);
+    });
+    
+    // Add blood types to form data
+    tiposSelecionados.forEach((tipo, index) => {
+        formData.append(`tipos_sanguineos[${index}]`, tipo);
+    });
+
+    fetch('includes/criar_campanha.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message and refresh
+            $('#novaCampanhaModal').modal('hide');
+            alert('Campanha criada com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    });
 });
 
 // Atualização automática a cada 5 minutos

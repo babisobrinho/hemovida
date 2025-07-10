@@ -21,7 +21,8 @@
                 <li>O controlo do inventário das bolsas de sangue;</li>
                 <li>A supervisão dos exames clínicos realizados;</li>
                 <li>A gestão de transfusões de sangue efetuadas;</li>
-                <li>A gestão das parcerias com os hospitais.</li>
+                <li>A gestão das parcerias com os hospitais;</li>
+                <li>A gestão das campanhas de doação.</li>
             </ul>
         </div>
         <div class="col-lg-5 col-12 text-center d-flex flex-column align-items-center">
@@ -76,7 +77,7 @@
                                 <img class="rounded-circle shadow-lg" style="width: 150px;" src="https://avatars.githubusercontent.com/u/197295278?v=4" alt="Juliana Alves">
                             </span>
                             <p class="fw-semibold fs-17 mt-3 mb-0 text-danger">Juliana Alves</p>
-                            <span class="text-dark fs-14 text-primary fw-semibold">Mobile</span>
+                            <span class="text-dark fs-14 text-primary fw-semibold">Full-Stack</span>
                         </a>
                     </div>
                 </div>
