@@ -21,7 +21,10 @@
 
     <!-- BOOTSTRAP -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-
+    <!-- jQuery e Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+ 
 </head>
 <body>
 
@@ -85,6 +88,11 @@
                                 <li>
                                     <a class="dropdown-item" href="hospitais.php">
                                         <i class="fa-regular fa-hospital"></i> Hospitais
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="campanhas.php">
+                                        <i class="fa-solid fa-bullhorn"></i> Campanhas
                                     </a>
                                 </li>
                             </ul>
