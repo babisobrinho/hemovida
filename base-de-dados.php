@@ -15,7 +15,7 @@
 
     <div class="row">
         <div class="col-12">
-            <p>A base de dados do projeto <b>HemoVida</b> foi projetada para gerir o processo de doação e transfusão de sangue de forma eficiente. Ela é composta por diversas tabelas interligadas que armazenam e organizam informações sobre doadores, doações, bolsas de sangue, transfusões e exames médicos.</p>
+            <p>A base de dados do projeto <b>HemoVida</b> foi projetada para gerir o processo de doação e transfusão de sangue de forma eficiente. Ela é composta por diversas tabelas interligadas que armazenam e organizam informações sobre doadores, doações, bolsas de sangue, transfusões, exames médicos, campanhas e hospitais.</p>
         </div>
         <div class="col-12">
             <h3>Principais Entidades</h3>
@@ -26,6 +26,9 @@
                 <li><code>exames</code> contém os exames médicos realizados nas bolsas de sangue. Regista os níveis de hemoglobina e os resultados de testes para doenças como hepatite, HIV, chagas e sífilis. Por fim, também registado o resultado do exame;</li>
                 <li><code>hospitais</code> contém as informações sobre os hospitais parceiros. Regista o nome, endereço, contato e o nome do responsável do hospital;</li>
                 <li><code>transfusoes</code> relaciona as bolsas de sangue a pacientes que recebem transfusões nos hospitais. Regista o ID da bolsa de sangue, o número único de utente do receptor, a data da transfusão e o hospital onde foi realizada.</li>
+                <li><code>campanhas</code> Armazena informações sobre campanhas de doação (título, datas de início/fim, meta de doações, prioridade e descrição);</li>
+                <li><code>campanhas_tipos_sanguineos</code> Relaciona campanhas com tipos sanguíneos específicos visados;</li>
+              
             </ul>
         </div>
         <div class="col-12">
@@ -35,7 +38,19 @@
                 <li><code>doacoes</code> ↔ <code>bolsas_sangue</code> cada doação pode gerar uma ou mais bolsas de sangue;</li>
                 <li><code>bolsas_sangue</code> ↔ <code>exames</code> todas as bolsas são submetidas a exames antes de serem utilizadas;</li>
                 <li><code>bolsas_sangue</code> ↔ <code>transfusoes</code> apenas as bolsas aprovadas podem ser utilizadas para transfusões;</li>
-                <li><code>transfusoes</code> ↔ <code>hospitais</code> as transfusões são realizadas em hospitais registados como parceiros.</li>
+                <li><code>transfusoes</code> ↔ <code>hospitais</code> as transfusões são realizadas em hospitais registados como parceiros;</li>
+                <li><code>Evento agendado</code> ↔ <code>campanhas_tipos_sanguineos</code> Cada campanha pode visar múltiplos tipos sanguíneos;</li>
+
+            </ul>
+            </p>
+        </div>
+        <div class="col-12">
+            <h3>Funcionalidades Avançadas</h3>
+            <ul>
+                <li><code>Procedimento armazenado</code> - <code>atualizar_progresso_campanhas </code> recalcula automaticamente doações válidas associadas a campanhas ativas;</li>
+                <li><code>Trigger</code> - <code>after_doacao_insert </code> executa o procedimento de atualização após cada nova doação registada;</li>
+                <li><code>Evento agendado</code> -  Rotina diária para verificar validade de bolsas e atualizar progresso das campanhas;</li>
+                <li><code>Formulários de triagem</code> - Registam critérios de elegibilidade dos doadores com validação automática de prazos;</li>
             </ul>
             </p>
         </div>
